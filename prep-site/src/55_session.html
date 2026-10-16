@@ -1,0 +1,229 @@
+<section class="unit" id="session" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">From the recorded sessions</div><h2>What the instructor built live</h2></div></div>
+  <p>The 2-hour final prep session and the 1.5-hour PHP session solve these problems from scratch. Many show patterns (two buttons, dropdowns, multi-action forms) that haven’t appeared in a paper <em>yet</em>, so they’re good candidates for the next one.</p>
+  <div class="note"><b class="k">The instructor’s answer style</b><ul>
+    <li>Write the problem statement at the top as a comment.</li>
+    <li>Label sections: <code>// INPUT TAKING</code> · <code>// CALCULATION</code> · <code>// SHOW IN HTML</code> (JS) and <code>// READ THE HTML</code> · <code>// CALCULATION</code> · <code>// output print</code> (PHP).</li>
+    <li>JS: globals “to persist across multiple button clicks”. PHP: <code>action="index.php" method="post"</code>.</li>
+    <li>Q3: CREATE / INSERT typed in phpMyAdmin’s SQL tab and saved in <code>sql.txt</code>. Only SELECT / UPDATE go into <code>index.php</code>.</li>
+  </ul></div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">JS</span><h4>Budget planner: earnings and expenses</h4></div>
+    <div class="qbody">
+      <div class="qtext"><p>Two inputs (item name, item cost). Two buttons: save the item as an <b>earning</b> or as an <b>expense</b>. Show all earnings and expenses in a list. <span class="muted">(In the session only the EARNING button was finished; the expense half and the balance line below complete it the same way.)</span></p></div>
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<body>
+    <input id="item-name" type="text" placeholder="item name">
+    <input id="item-price" type="text" placeholder="item price">
+    <button id="earning">EARNING</button>
+    <button id="expense">EXPENSE</button>
+    <div id="feedback">MY BUDGET:</div>
+
+    <script src="index.js"></script>
+</body>
+</html>
+@@end
+@@code js index.js
+// to persist across multiple button clicks, we need global variables
+let earning_items = [];
+let total_earnings = 0;
+let expense_items = [];
+let total_expenses = 0;
+
+function show() {
+    // SHOW IN HTML
+    let feedback = "";
+    feedback += "earning items: " + earning_items.join(", ");
+    feedback += `<br>total earning: ${total_earnings}<br>`;
+    feedback += "expense items: " + expense_items.join(", ");
+    feedback += `<br>total expense: ${total_expenses}<br>`;
+    feedback += `<b>balance: ${total_earnings - total_expenses}</b>`;
+    document.getElementById("feedback").innerHTML = feedback;
+}
+
+document.getElementById("earning").addEventListener("click", function () {
+    // INPUT TAKING
+    let item = document.getElementById("item-name").value;
+    let price = Number(document.getElementById("item-price").value);
+    // CALCULATION
+    total_earnings += price;
+    earning_items.push(item);
+    show();
+});
+
+document.getElementById("expense").addEventListener("click", function () {
+    let item = document.getElementById("item-name").value;
+    let price = Number(document.getElementById("item-price").value);
+    total_expenses += price;
+    expense_items.push(item);
+    show();
+});
+@@end
+      <div class="demo">
+        <div class="demo-title"><span>Live demo</span></div>
+        <div class="demo-row"><label>Item name<input id="bp-n" type="text" value="salary"></label><label>Item price<input id="bp-p" type="text" value="20000"></label><button class="btn primary" id="bp-earn" type="button">EARNING</button><button class="btn" id="bp-exp" type="button">EXPENSE</button></div>
+        <div class="out" id="bp-out">MY BUDGET:</div>
+      </div>
+      <p>One way to show the list is the session’s <code>for</code> loop (<code>feedback += `${earning_items[i]},`</code>). <code>join(", ")</code> does the same in one call, without the trailing comma.</p>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">PHP</span><h4>Grade calculator</h4></div>
+    <div class="qbody">
+      <div class="qtext"><p>3 CT marks: best 2 of 3, then average (out of 20). Mid (30), Final (40), Assignment (10). Show the final marks.</p></div>
+@@code html index.html
+<form action="index.php" method="post">
+    <input name="ct-1" type="number" placeholder="CT 1">
+    <input name="ct-2" type="number" placeholder="CT 2">
+    <input name="ct-3" type="number" placeholder="CT 3">
+    <input name="mid" type="number" placeholder="Mid">
+    <input name="final" type="number" placeholder="Final">
+    <input name="assignment" type="number" placeholder="assignment">
+    <button type="submit">Submit</button>
+</form>
+@@end
+@@code php index.php
+<?php
+// READ THE HTML
+$ct1 = $_POST["ct-1"];
+$ct2 = $_POST["ct-2"];
+$ct3 = $_POST["ct-3"];
+$mid = $_POST["mid"];
+$final = $_POST["final"];
+$assignment = $_POST["assignment"];
+
+// CALCULATION
+$least = min($ct1, $ct2, $ct3);
+$best2 = $ct1 + $ct2 + $ct3 - $least;      // (the video has a typo here: $c1)
+$best2avg = $best2 / 2;
+$total_marks = $best2avg + $mid + $final + $assignment;
+
+// output print
+echo "total marks: " . $total_marks . "<br>";
+?>
+@@end
+      <div class="note warn"><b class="k">Spot the bug from the video</b><p>On screen the line was <code>$best2 = $c1+$ct2+$ct3-$least;</code>. <code>$c1</code> doesn’t exist: PHP warns “Undefined variable $c1”, treats it as 0, and the total comes out wrong. Variable typos don’t stop the script, so test with the sample numbers.</p></div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">PHP</span><span class="chip sql">SQL</span><h4>Design a shop: several buttons, one form</h4></div>
+    <div class="qbody">
+      <div class="qtext"><p>Inputs: item name, count. Buttons: Buy Item, Add Item, Add Stock, Show Items. A database stores the items.</p></div>
+@@code sql phpMyAdmin → SQL tab
+CREATE DATABASE shop;
+USE shop;
+CREATE TABLE items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    stock INT DEFAULT 0
+);
+@@end
+@@code html shop.html
+<form action="shop.php" method="post">
+    <input name="item-name" type="text" placeholder="item name">
+    <input name="item-count" type="number" placeholder="count">
+    <br><br>
+    <button name="action" value="buy-item"   type="submit">Buy Item</button>
+    <button name="action" value="add-item"   type="submit">Add Item</button>
+    <button name="action" value="add-stock"  type="submit">Add Stock</button>
+    <button name="action" value="show-items" type="submit">Show Items</button>
+</form>
+@@end
+@@code php shop.php
+<?php
+/// INPUT
+$item_name = $_POST["item-name"];
+$item_count = $_POST["item-count"];
+$button_pressed = $_POST["action"];      // one button is pressed at a time
+
+/// DB CONNECTION
+$conn = new mysqli("localhost", "root", "", "shop");
+if ($conn->connect_error) {
+    echo "db connection error";
+}
+
+// main part
+if ($button_pressed == "add-item") {
+    $check = "SELECT * FROM items WHERE name='$item_name'";
+    $result = $conn->query($check);
+    if ($result->num_rows > 0) {
+        echo "item exists";
+    } else {
+        $sql = "INSERT INTO items (name, stock) VALUES ('$item_name', $item_count)";
+        $conn->query($sql);
+    }
+}
+else if ($button_pressed == "buy-item") {
+    $check = "SELECT * FROM items WHERE name='$item_name'";
+    $result = $conn->query($check);
+    if ($result->num_rows == 0) {
+        echo "item doesn't exist";
+    } else {
+        $sql = "UPDATE items SET stock = stock - $item_count
+                WHERE name='$item_name' AND stock >= $item_count";   // can't go negative
+        $conn->query($sql);
+    }
+}
+else if ($button_pressed == "add-stock") {
+    $check = "SELECT * FROM items WHERE name='$item_name'";
+    $result = $conn->query($check);
+    if ($result->num_rows == 0) {
+        echo "item doesn't exist";
+    } else {
+        $sql = "UPDATE items SET stock = stock + $item_count WHERE name='$item_name'";
+        $conn->query($sql);
+    }
+}
+else if ($button_pressed == "show-items") {
+    $result = $conn->query("SELECT * FROM items");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo "item name:" . $row["name"] . ", stock:" . $row["stock"] . "<br>";
+        }
+    }
+}
+?>
+@@end
+      <ul>
+        <li>All four buttons share <code>name="action"</code>. Only the clicked one is sent, so <code>$_POST["action"]</code> tells you which.</li>
+        <li><b>Check before you change:</b> SELECT first, then <code>num_rows &gt; 0</code> means the item exists, <code>== 0</code> means it doesn’t.</li>
+        <li>Text goes in quotes in SQL (<code>'$item_name'</code>), numbers don’t (<code>$item_count</code>).</li>
+        <li>The guard <code>AND stock &gt;= $item_count</code> stops a purchase from making stock negative.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">SQL</span><h4>Session Q3: items table, SELECT and UPDATE</h4></div>
+    <div class="qbody">
+@@code php index.php
+<?php
+// CONNECTION
+$conn = new mysqli("localhost", "root", "", "shop");
+if ($conn->connect_error == false)
+    echo "connection successful<br>";
+
+// selection query: show items with stock > 50
+$sql = "SELECT * FROM items WHERE stock > 50";
+$result = $conn->query($sql);
+if ($result->num_rows > 0) {
+    echo "<br>Query 1=========<br>";
+    while ($row = $result->fetch_assoc()) {
+        echo "item name: " . $row["name"] . " || item price: " . $row["price"] . "<br>";
+    }
+}
+
+// update query: increase stock of items by 10 where stock < 50
+$sql = "UPDATE items SET stock = stock + 10 WHERE stock < 50";
+$result = $conn->query($sql);
+?>
+@@end
+      <p class="muted" style="font-size:.9rem">This version of the table had <code>ID, name, price, stock</code> columns. Rows after the update: a 50 / 20, b 100 / 30, c 40 / 100.</p>
+    </div>
+  </div>
+</section>

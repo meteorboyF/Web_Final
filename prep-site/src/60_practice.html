@@ -1,0 +1,390 @@
+<!-- =============================== PRACTICE =============================== -->
+<section class="unit" id="practice" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Test yourself</div><h2>Practice problems in the exam’s style</h2></div></div>
+  <p>New problems built from the same patterns as the past papers. Try each one in VS Code or on paper <b>before</b> opening the solution. The SQL answers were verified on MySQL 8.</p>
+  <div class="toc-inline"><a href="#pr-js">JS ×4</a><a href="#pr-php">PHP ×4</a><a href="#pr-sql">SQL ×2</a></div>
+
+  <h3 id="pr-js"><span class="chip js">JS</span> Q1-style</h3>
+
+  <div class="qblock"><div class="qhead"><span class="chip js">P1</span><h4>Step counter</h4><span class="chip neutral">running total · Math.max · override</span></div><div class="qbody">
+    <div class="qtext"><p>One number input (steps in a walk), a “Log Walk” button, a label. Daily goal 10,000 steps. On each click: add to the total, count walks, find the average per walk and the <b>longest walk so far</b>. Feedback by total: below 3000 “Get moving!”, 3000–6999 “Nice pace!”, 7000–9999 “Almost there!”, 10000+ “Goal smashed!”. If there are more than 6 walks and the goal isn’t reached, show “Try longer walks!”.</p><p class="muted">Sample: 2000, 4500, 3000 → Total 9500, Average 3166.67, Longest 4500, Almost there!</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code js script.js
+const GOAL = 10000;
+let total = 0;
+let walks = [];
+
+document.getElementById("logBtn").addEventListener("click", function () {
+    let box = document.getElementById("stepsInput");
+    let steps = parseInt(box.value);
+    if (isNaN(steps) || steps <= 0) return;
+
+    walks.push(steps);
+    total += steps;
+    let avg = Math.round((total / walks.length) * 100) / 100;
+    let longest = Math.max(...walks);
+
+    let msg;
+    if (total < 3000) msg = "Get moving!";
+    else if (total < 7000) msg = "Nice pace!";
+    else if (total < 10000) msg = "Almost there!";
+    else msg = "Goal smashed!";
+    if (walks.length > 6 && total < GOAL) msg = "Try longer walks!";
+
+    document.getElementById("result").innerHTML =
+        `Total: ${total} / ${GOAL}<br>Walks: ${walks.length}<br>` +
+        `Average: ${avg}<br>Longest: ${longest}<br>${msg}`;
+    box.value = "";
+});
+@@end
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip js">P2</span><h4>Class quiz scoreboard</h4><span class="chip neutral">two arrays · filter · finding the max</span></div><div class="qbody">
+    <div class="qtext"><p>Inputs: student name and score (0–100). Button “Add Score”. After each entry, show the number of students, the class average, the <b>top student and score</b>, and how many passed (score ≥ 40). Feedback on the average: ≥ 80 “Excellent class!”, ≥ 60 “Good class”, else “Needs revision”. Reject scores outside 0–100 with an error message.</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code js script.js
+let names = [];
+let scores = [];
+
+document.getElementById("addBtn").addEventListener("click", function () {
+    let name = document.getElementById("nameInput").value.trim();
+    let score = Number(document.getElementById("scoreInput").value);
+    let out = document.getElementById("board");
+
+    if (name === "" || isNaN(score) || score < 0 || score > 100) {
+        out.innerText = "Enter a name and a score between 0 and 100.";
+        return;
+    }
+    names.push(name);
+    scores.push(score);
+
+    let sum = scores.reduce((a, b) => a + b, 0);
+    let avg = sum / scores.length;
+
+    let best = Math.max(...scores);
+    let bestName = names[scores.indexOf(best)];     // same position in both arrays
+
+    let passed = scores.filter(s => s >= 40).length;
+
+    let fb = avg >= 80 ? "Excellent class!" : avg >= 60 ? "Good class" : "Needs revision";
+
+    out.innerHTML = `Students: ${scores.length}<br>Average: ${avg.toFixed(2)}<br>` +
+                    `Top: ${bestName} (${best})<br>Passed: ${passed}<br>${fb}`;
+});
+@@end
+      <p>The two arrays stay “parallel”: <code>names[i]</code> belongs to <code>scores[i]</code>, so <code>indexOf(best)</code> finds the top student’s position. The <code>? :</code> chain is a short if-else.</p>
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip js">P3</span><h4>Shopping cart with discount</h4><span class="chip neutral">3 inputs · list display · percentage</span></div><div class="qbody">
+    <div class="qtext"><p>Inputs: product, unit price, quantity. Button “Add to Cart”. Show every line as “Pen × 2 = 40”, the subtotal, a <b>10% discount if the subtotal is over 5000</b>, and the payable total. After the 5th item show “Cart is getting full!”.</p><p class="muted">Sample: Pen 20×2, Bag 1500×2, Shoes 2500×1 → Subtotal 5540, Discount 554, Payable 4986</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code js script.js
+let lines = [];
+let subtotal = 0;
+
+document.getElementById("addBtn").addEventListener("click", function () {
+    let product = document.getElementById("product").value;
+    let price = Number(document.getElementById("price").value);
+    let qty = parseInt(document.getElementById("qty").value);
+    if (product === "" || isNaN(price) || isNaN(qty)) return;
+
+    let lineTotal = price * qty;
+    subtotal += lineTotal;
+    lines.push(`${product} × ${qty} = ${lineTotal}`);
+
+    let discount = subtotal > 5000 ? subtotal * 0.10 : 0;
+    let payable = subtotal - discount;
+
+    let html = lines.join("<br>");
+    html += `<br><br>Subtotal: ${subtotal}<br>Discount: ${discount}<br><b>Payable: ${payable}</b>`;
+    if (lines.length >= 5) html += "<br>Cart is getting full!";
+
+    document.getElementById("cart").innerHTML = html;
+});
+@@end
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip js">P4</span><h4>Temperature log</h4><span class="chip neutral">map · filter with index · min/max</span></div><div class="qbody">
+    <div class="qtext"><p>Input a temperature in °C, button “Add Reading”. Show all readings converted to °F (<code>F = C × 9/5 + 32</code>), the highest and lowest °C, the average, and the number of “warming days”: readings hotter than the reading before them.</p><p class="muted">Sample: 20, 22, 21, 25 → °F [68, 71.6, 69.8, 77], High 25, Low 20, Avg 22, Warming days 2</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code js script.js
+let temps = [];
+
+document.getElementById("addBtn").addEventListener("click", function () {
+    let c = Number(document.getElementById("tempInput").value);
+    if (isNaN(c)) return;
+    temps.push(c);
+
+    let fahrenheit = temps.map(t => Math.round((t * 9 / 5 + 32) * 10) / 10);
+    let avg = temps.reduce((a, b) => a + b, 0) / temps.length;
+    let warming = temps.filter((t, i, arr) => i > 0 && t > arr[i - 1]).length;
+
+    document.getElementById("log").innerHTML =
+        `°F: [${fahrenheit.join(", ")}]<br>` +
+        `High: ${Math.max(...temps)} · Low: ${Math.min(...temps)}<br>` +
+        `Average: ${avg.toFixed(1)}<br>Warming days: ${warming}`;
+});
+@@end
+    </div></details>
+  </div></div>
+
+  <h3 id="pr-php"><span class="chip php">PHP</span> Q2-style</h3>
+
+  <div class="qblock"><div class="qhead"><span class="chip php">P5</span><h4>Field trip buses</h4><span class="chip neutral">Pattern A</span></div><div class="qbody">
+    <div class="qtext"><p>Write a PHP function taking students, bus capacity and rent per bus. Output the buses needed, empty seats, total rent, and cost per student (2 decimals).</p></div>
+@@table sample
+Students|Capacity|Rent/Bus|Buses|Empty|Total Rent|Per Student
+130|40|6000|4|30|24,000|184.62
+90|45|5000|2|0|10,000|111.11
+@@end
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code php trip.php
+<?php
+function planTrip($students, $capacity, $rent) {
+    $buses = ceil($students / $capacity);
+    $empty = $buses * $capacity - $students;
+    $totalRent = $buses * $rent;
+    $perStudent = round($totalRent / $students, 2);
+
+    echo "Buses Needed: $buses<br>";
+    echo "Empty Seats: $empty<br>";
+    echo "Total Rent: " . number_format($totalRent) . " BDT<br>";
+    echo "Cost per Student: $perStudent BDT<br>";
+}
+planTrip((int)$_POST["students"], (int)$_POST["capacity"], (int)$_POST["rent"]);
+?>
+@@end
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip php">P6</span><h4>Electricity bill with slabs</h4><span class="chip neutral">tiered calculation · classification</span></div><div class="qbody">
+    <div class="qtext"><p>Input units consumed. The first 100 units cost 5 BDT each, units 101–200 cost 7 each, and anything above 200 costs 10 each. If the bill exceeds 1000 BDT, add 5% VAT. Usage: ≤ 100 “Low”, ≤ 300 “Medium”, otherwise “High”.</p></div>
+@@table sample
+Units|Energy charge|VAT|Total|Usage
+80|400|0|400|Low
+250|500 + 700 + 500 = 1700|85|1785|Medium
+@@end
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code php bill.php
+<?php
+$units = (int) $_POST["units"];
+
+if ($units <= 100) {
+    $charge = $units * 5;
+} elseif ($units <= 200) {
+    $charge = 100 * 5 + ($units - 100) * 7;
+} else {
+    $charge = 100 * 5 + 100 * 7 + ($units - 200) * 10;
+}
+
+$vat = ($charge > 1000) ? $charge * 0.05 : 0;
+$total = $charge + $vat;
+
+if ($units <= 100)      $usage = "Low";
+elseif ($units <= 300)  $usage = "Medium";
+else                    $usage = "High";
+
+echo "Energy Charge: $charge BDT<br>";
+echo "VAT: $vat BDT<br>";
+echo "Total Bill: $total BDT<br>";
+echo "Usage: $usage";
+?>
+@@end
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip php">P7</span><h4>Paint cans</h4><span class="chip neutral">Pattern A with area</span></div><div class="qbody">
+    <div class="qtext"><p>Inputs: wall length, wall height (ft), and coverage of one can (sq ft). A can costs 850 BDT. Output the area, cans needed, unused coverage, and money wasted on the unused paint.</p><p class="muted">Sample: 20, 10, 60 → Area 200, Cans 4, Unused 40 sq ft, Wasted 566.67 BDT</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code php paint.php
+<?php
+function paintJob($length, $height, $coverage) {
+    $area = $length * $height;
+    $cans = ceil($area / $coverage);
+    $unused = $cans * $coverage - $area;
+    $wasted = round($unused * (850 / $coverage), 2);   // price per sq ft × unused
+
+    echo "Wall Area: $area sq ft<br>Cans Needed: $cans<br>";
+    echo "Unused Coverage: $unused sq ft<br>Wasted Money: $wasted BDT";
+}
+paintJob((float)$_POST["length"], (float)$_POST["height"], (float)$_POST["coverage"]);
+?>
+@@end
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip php">P8</span><h4>Best 3 of 4 quizzes → letter grade</h4><span class="chip neutral">Pattern D · rsort</span></div><div class="qbody">
+    <div class="qtext"><p>Four quiz marks (each out of 10), a mid (30) and a final (40). Use the best 3 quizzes. Total out of 100. Grade: ≥ 80 A+, ≥ 70 A, ≥ 60 B, ≥ 50 C, else F.</p><p class="muted">Sample: 8, 6, 9, 7 · mid 25 · final 33 → best three 24, total 82, A+</p></div>
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code php grade.php
+<?php
+$quizzes = [(int)$_POST["q1"], (int)$_POST["q2"], (int)$_POST["q3"], (int)$_POST["q4"]];
+$mid = (int) $_POST["mid"];
+$final = (int) $_POST["final"];
+
+rsort($quizzes);                                     // highest first
+$bestThree = $quizzes[0] + $quizzes[1] + $quizzes[2];
+// or: array_sum($quizzes) - min($quizzes)
+
+$total = $bestThree + $mid + $final;
+
+if ($total >= 80)      $grade = "A+";
+elseif ($total >= 70)  $grade = "A";
+elseif ($total >= 60)  $grade = "B";
+elseif ($total >= 50)  $grade = "C";
+else                   $grade = "F";
+
+echo "Best three quizzes: $bestThree / 30<br>";
+echo "Total: $total / 100<br>Grade: $grade";
+?>
+@@end
+    </div></details>
+  </div></div>
+
+  <h3 id="pr-sql"><span class="chip sql">SQL</span> Q3-style</h3>
+
+  <div class="qblock"><div class="qhead"><span class="chip sql">P9</span><h4>City hospital</h4><span class="chip neutral">HAVING · 3-condition UPDATE · LIMIT · CASE vs average</span></div><div class="qbody">
+    <div class="qtext"><p>Database <code>city_hospital</code>, table <code>patients</code>. Write full PHP code (CREATE/INSERT may be in a txt file).</p><ol><li>For each ward with more than one patient: number of patients and average bill, highest average first.</li><li>Patients older than 50 who are ‘Admitted’ and have stayed more than 10 days → Status ‘Critical Care’.</li><li>Give a 15% discount on bills over 60,000, but only if the discounted bill is still at least 55,000.</li><li>The 3 most expensive patients (name, ward, bill).</li><li>Every patient’s name and bill with a label: ‘High’ if the bill is above the average of all bills, else ‘Normal’.</li></ol></div>
+@@table patients
+PatientID|PatientName|Ward|Age|DaysAdmitted|Bill|Status
+1|Rafi|Cardiology|54|6|42000.00|Admitted
+2|Nusrat|Neurology|37|3|28000.00|Discharged
+3|Tanvir|Cardiology|61|12|95000.00|Admitted
+4|Mitu|Orthopedics|25|2|15000.00|Discharged
+5|Sakib|Neurology|45|9|61000.00|Admitted
+6|Lamia|Cardiology|29|1|8000.00|Discharged
+7|Hasan|Orthopedics|70|15|72000.00|Admitted
+@@end
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "city_hospital");
+if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+
+echo "<h3>1</h3>";
+$r = $conn->query("SELECT Ward, COUNT(*) AS NumPatients, ROUND(AVG(Bill), 2) AS AvgBill
+                   FROM patients GROUP BY Ward
+                   HAVING COUNT(*) > 1
+                   ORDER BY AvgBill DESC");
+while ($row = $r->fetch_assoc())
+    echo "{$row['Ward']}: {$row['NumPatients']} patients, avg {$row['AvgBill']}<br>";
+
+echo "<h3>2</h3>";
+$conn->query("UPDATE patients SET Status = 'Critical Care'
+              WHERE Age > 50 AND Status = 'Admitted' AND DaysAdmitted > 10");
+echo "Rows changed: " . $conn->affected_rows;
+
+echo "<h3>3</h3>";
+$conn->query("UPDATE patients SET Bill = Bill * 0.85
+              WHERE Bill > 60000 AND Bill * 0.85 >= 55000");
+echo "Rows changed: " . $conn->affected_rows;
+
+echo "<h3>4</h3>";
+$r = $conn->query("SELECT PatientName, Ward, Bill FROM patients ORDER BY Bill DESC LIMIT 3");
+while ($row = $r->fetch_assoc())
+    echo "{$row['PatientName']} ({$row['Ward']}): {$row['Bill']}<br>";
+
+echo "<h3>5</h3>";
+$r = $conn->query("SELECT PatientName, Bill,
+                          CASE WHEN Bill > (SELECT AVG(Bill) FROM patients)
+                               THEN 'High' ELSE 'Normal' END AS BillLevel
+                   FROM patients");
+while ($row = $r->fetch_assoc())
+    echo "{$row['PatientName']}: {$row['Bill']} - {$row['BillLevel']}<br>";
+
+$conn->close();
+?>
+@@end
+      <h4>Verified output</h4>
+@@table 1 · wards (before updates)
+Ward|NumPatients|AvgBill
+Cardiology|3|48333.33
+Neurology|2|44500.00
+Orthopedics|2|43500.00
+@@end
+@@table after 2 and 3 | hl=3,5,7
+PatientName|Age|Days|Bill|Status
+Rafi|54|6|42000.00|Admitted
+Nusrat|37|3|28000.00|Discharged
+Tanvir|61|12|*80750.00|*Critical Care
+Mitu|25|2|15000.00|Discharged
+Sakib|45|9|61000.00 (51,850 < 55,000 → skipped)|Admitted
+Lamia|29|1|8000.00|Discharged
+Hasan|70|15|*61200.00|*Critical Care
+@@end
+      <p><b>4:</b> Tanvir 80,750 · Hasan 61,200 · Sakib 61,000. <b>5:</b> the overall average is now 42,278.57, so Tanvir, Sakib and Hasan are ‘High’ and everyone else is ‘Normal’ (Rafi’s 42,000 is just under).</p>
+    </div></details>
+  </div></div>
+
+  <div class="qblock"><div class="qhead"><span class="chip sql">P10</span><h4>Tech store orders</h4><span class="chip neutral">SUM of expression · BETWEEN · HAVING alias · CASE</span></div><div class="qbody">
+    <div class="qtext"><p>Database <code>tech_store</code>, table <code>orders</code>.</p><ol><li>Each customer’s total spending (Qty × UnitPrice), highest first.</li><li>Orders whose value (Qty × UnitPrice) is between 3,000 and 40,000 inclusive.</li><li>Raise UnitPrice by 5% for Monitor orders from Dhaka.</li><li>Cities whose total revenue is above 30,000, highest first.</li><li>Every order labelled ‘Big Order’ if its value is at least 20,000, else ‘Small Order’.</li></ol></div>
+@@table orders
+OrderID|Customer|Product|Qty|UnitPrice|City
+1|Arif|Keyboard|2|1500|Dhaka
+2|Bina|Monitor|1|18000|Chattogram
+3|Arif|Mouse|3|600|Dhaka
+4|Chayan|Laptop|1|85000|Sylhet
+5|Bina|Headphone|2|2500|Chattogram
+6|Dipu|Monitor|2|17500|Dhaka
+@@end
+    <details class="sol"><summary>Show solution</summary><div class="inner">
+@@code sql the five queries (wrap each in $conn->query + while loop)
+-- 1
+SELECT Customer, SUM(Qty * UnitPrice) AS TotalSpent
+FROM orders GROUP BY Customer ORDER BY TotalSpent DESC;
+
+-- 2
+SELECT OrderID, Customer, Product, Qty * UnitPrice AS OrderValue
+FROM orders WHERE Qty * UnitPrice BETWEEN 3000 AND 40000;
+
+-- 3
+UPDATE orders SET UnitPrice = UnitPrice * 1.05
+WHERE Product = 'Monitor' AND City = 'Dhaka';
+
+-- 4
+SELECT City, SUM(Qty * UnitPrice) AS Revenue
+FROM orders GROUP BY City
+HAVING Revenue > 30000
+ORDER BY Revenue DESC;
+
+-- 5
+SELECT OrderID, Customer, Product,
+       CASE WHEN Qty * UnitPrice >= 20000 THEN 'Big Order' ELSE 'Small Order' END AS Size
+FROM orders;
+@@end
+      <h4>Verified output</h4>
+      <div class="grid">
+<div>
+@@table 1
+Customer|TotalSpent
+Chayan|85000.00
+Dipu|35000.00
+Bina|23000.00
+Arif|4800.00
+@@end
+</div>
+<div>
+@@table 2 · BETWEEN is inclusive
+OrderID|Product|OrderValue
+1|Keyboard|3000.00
+2|Monitor|18000.00
+5|Headphone|5000.00
+6|Monitor|35000.00
+@@end
+</div>
+<div>
+@@table 4 · after part 3
+City|Revenue
+Sylhet|85000.00
+Dhaka|41550.00
+@@end
+<p class="muted" style="font-size:.88rem">Dhaka = 3000 + 1800 + 2 × 18375. Chattogram (23,000) is filtered out.</p>
+</div>
+      </div>
+      <p><b>3</b> changes 1 row (Dipu’s monitor: 17,500 → 18,375; Bina’s monitor is in Chattogram). <b>5:</b> Big Order for #4 (85,000) and #6 (36,750); every other order is Small.</p>
+    </div></details>
+  </div></div>
+</section>

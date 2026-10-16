@@ -1,0 +1,747 @@
+<section class="unit" id="p-f25" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals</div><h2>Fall 2025</h2></div></div>
+  <p class="muted">CT marks (PHP) · Sales event planner (PHP) · Campus library. <b>No JS question this time.</b> Q1 was a second PHP form.</p>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q1 · PHP</span><h4>CT and exam marks</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>An HTML form takes three CT marks, a midterm and a final. Select the <b>best two CTs</b>, “calculate their average”, add midterm and final to get the total. Show “Passed” if total &gt; 54, else “Failed”.</p></div>
+@@table sample (from the paper’s screenshot)
+CT1|CT2|CT3|Mid|Final|Output
+12|15|14|22|32|Best two CT’s total: 29 · Midterm: 22 · Final: 32 · Total Marks = 83 · Passed
+@@end
+      <div class="note warn"><b class="k">Text says “average”, sample says “total”</b><p>15 + 14 = 29 and 29 + 22 + 32 = 83, so the sample adds the <b>sum</b> of the best two (an average would be 14.5, giving 68.5). The practice solutions follow the sample. In the exam, follow the sample and add a comment explaining why. The prep-session version of this problem (“best 2 then average”) divided by 2, so read <em>your</em> paper’s sample carefully.</p></div>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<body>
+    <form action="marks.php" method="post">
+        CT 1: <input type="number" name="ct1"><br>
+        CT 2: <input type="number" name="ct2"><br>
+        CT 3: <input type="number" name="ct3"><br>
+        Midterm Marks: <input type="number" name="midterm"><br>
+        Final Marks: <input type="number" name="final"><br><br>
+        <input type="submit" value="Calculate Total">
+    </form>
+</body>
+</html>
+@@end
+@@code php marks.php
+<?php
+$ct1     = (int) $_POST["ct1"];
+$ct2     = (int) $_POST["ct2"];
+$ct3     = (int) $_POST["ct3"];
+$midterm = (int) $_POST["midterm"];
+$final   = (int) $_POST["final"];
+
+// best two = all three minus the smallest
+$bestTwo = ($ct1 + $ct2 + $ct3) - min($ct1, $ct2, $ct3);
+// (sample output uses the SUM of best two; for a true average use $bestTwo / 2)
+
+$total = $bestTwo + $midterm + $final;
+$status = ($total > 54) ? "Passed" : "Failed";      // ternary = short if/else
+
+echo "Best two CT's total: $bestTwo<br>";
+echo "Midterm marks: $midterm<br>";
+echo "Final marks: $final<br><br>";
+echo "<b>Total Marks = $total</b><br>";
+echo "Status: $status";
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="ct">
+        <div class="demo-title"><span>Simulate the PHP</span><span><label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="ct-avg" style="width:auto"> use average instead</label></span></div>
+        <div class="demo-row"><label>CT 1<input id="ct-1" type="number" value="12"></label><label>CT 2<input id="ct-2" type="number" value="15"></label><label>CT 3<input id="ct-3" type="number" value="14"></label><label>Mid<input id="ct-m" type="number" value="22"></label><label>Final<input id="ct-f" type="number" value="32"></label></div>
+        <div class="out php" id="ct-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>Sales event planner</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Inputs: items sold per day, number of days, target items. Total = per day × days. Excellent ≥ 500, Good ≥ 300, Average ≥ 150, Poor &lt; 150. Then say whether total is above, below or exactly at target, with the difference.</p></div>
+@@table sample | hl=2
+Per Day|Days|Target|Total|Performance|Result
+25|12|300|300|Good|Target met exactly (0 difference)
+40|10|350|400|Excellent ⚠|Above target by 50 items
+15|10|200|150|Average|Below target by 50 items
+8|10|120|80|Poor|Below target by 40 items
+@@end
+      <div class="note warn"><b class="k">Typo in the paper</b><p>Row 2 says 400 → Excellent, but the stated rule makes 400 “Good”. Follow the written rule and note the discrepancy in a comment. The Spring 2026 Set A version of this question has no such inconsistency.</p></div>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<form action="sales.php" method="post">
+    Items Sold per Day: <input type="number" name="items_per_day"><br><br>
+    Number of Days: <input type="number" name="num_days"><br><br>
+    Target Items: <input type="number" name="target"><br><br>
+    <input type="submit" value="Calculate">
+</form>
+@@end
+@@code php sales.php
+<?php
+$perDay = (int) $_POST["items_per_day"];
+$days   = (int) $_POST["num_days"];
+$target = (int) $_POST["target"];
+
+$total = $perDay * $days;
+
+if ($total >= 500)      $performance = "Excellent";
+elseif ($total >= 300)  $performance = "Good";
+elseif ($total >= 150)  $performance = "Average";
+else                    $performance = "Poor";
+
+$diff = $total - $target;
+if ($diff > 0)       $result = "Above target by $diff items";
+elseif ($diff < 0)   $result = "Below target by " . abs($diff) . " items";
+else                 $result = "Target met exactly (0 difference)";
+
+echo "Total Items Sold: $total<br>";
+echo "Performance: $performance<br>";
+echo "Target: $target<br>";
+echo "Result: $result<br>";
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="sales">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Per day<input id="sl-a" type="number" value="25"></label><label>Days<input id="sl-b" type="number" value="12"></label><label>Target<input id="sl-c" type="number" value="300"></label></div>
+        <div class="out php" id="sl-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>Campus library book loans</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Database <code>campus_library</code>, table <code>book_loans</code>. 1) books per Status, only statuses with more than 1 entry; 2) Overdue and DaysOverdue &lt; 7 → Status ‘Grace Period’ and PenaltyFee 0; 3) PenaltyFee &gt; 20 → +10%, only if the result ≤ 50; 4) total PenaltyFee per BookTitle, most money first.</p></div>
+@@table given data
+LoanID|StudentName|BookTitle|DaysOverdue|PenaltyFee|Status
+101|Abdul|Data Structures|0|0.00|Returned
+102|Jabbar|Operating Systems|12|24.00|Overdue
+103|Barkat|Discrete Math|5|10.00|Overdue
+104|Rahim|Linear Algebra|2|4.00|Overdue
+105|Karim|Data Structures|15|30.00|Lost
+106|Fahim|Operating Systems|0|0.00|Returned
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt
+CREATE DATABASE campus_library;
+USE campus_library;
+CREATE TABLE book_loans (
+    LoanID INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    BookTitle VARCHAR(100),
+    DaysOverdue INT,
+    PenaltyFee DECIMAL(10,2),
+    Status VARCHAR(50)
+);
+INSERT INTO book_loans VALUES
+(101, 'Abdul', 'Data Structures', 0, 0.00, 'Returned'),
+(102, 'Jabbar', 'Operating Systems', 12, 24.00, 'Overdue'),
+(103, 'Barkat', 'Discrete Math', 5, 10.00, 'Overdue'),
+(104, 'Rahim', 'Linear Algebra', 2, 4.00, 'Overdue'),
+(105, 'Karim', 'Data Structures', 15, 30.00, 'Lost'),
+(106, 'Fahim', 'Operating Systems', 0, 0.00, 'Returned');
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "campus_library");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h3>1. Books per Status (more than 1)</h3>";
+$result = $conn->query("SELECT Status, COUNT(*) AS Total
+                        FROM book_loans
+                        GROUP BY Status
+                        HAVING COUNT(*) > 1");
+while ($row = $result->fetch_assoc()) {
+    echo $row["Status"] . ": " . $row["Total"] . "<br>";
+}
+
+echo "<h3>2. Grace Period</h3>";
+$sql = "UPDATE book_loans
+        SET Status = 'Grace Period', PenaltyFee = 0
+        WHERE Status = 'Overdue' AND DaysOverdue < 7";
+if ($conn->query($sql) === TRUE) echo "Updated " . $conn->affected_rows . " loans<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>3. Processing Charge</h3>";
+$sql = "UPDATE book_loans
+        SET PenaltyFee = PenaltyFee * 1.10
+        WHERE PenaltyFee > 20 AND PenaltyFee * 1.10 <= 50";
+if ($conn->query($sql) === TRUE) echo "Updated " . $conn->affected_rows . " loans<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>4. Penalty per Book</h3>";
+$result = $conn->query("SELECT BookTitle, SUM(PenaltyFee) AS TotalPenalty
+                        FROM book_loans
+                        GROUP BY BookTitle
+                        ORDER BY TotalPenalty DESC");
+while ($row = $result->fetch_assoc()) {
+    echo $row["BookTitle"] . ": " . $row["TotalPenalty"] . "<br>";
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+      <div class="grid">
+<div>
+@@table 1 · HAVING COUNT(*) > 1
+Status|Total
+Returned|2
+Overdue|3
+@@end
+<p class="muted" style="font-size:.88rem">“Lost” has only 1 row, so HAVING removes it.</p>
+</div>
+<div>
+@@table 4 · per book, DESC
+BookTitle|TotalPenalty
+Data Structures|33.00
+Operating Systems|26.40
+Discrete Math|0.00
+Linear Algebra|0.00
+@@end
+</div>
+      </div>
+@@table table after parts 2 & 3 | hl=2,3,4,5
+LoanID|StudentName|DaysOverdue|PenaltyFee|Status
+101|Abdul|0|0.00|Returned
+102|Jabbar|12|*26.40|Overdue
+103|Barkat|5|*0.00|*Grace Period
+104|Rahim|2|*0.00|*Grace Period
+105|Karim|15|*33.00|Lost
+106|Fahim|0|0.00|Returned
+@@end
+      <p>Part 2 hits Barkat (5 days) and Rahim (2 days), but not Jabbar (12 days). Part 3 then hits Jabbar (24 → 26.40) and Karim (30 → 33.00). Barkat’s fee is already 0 by then, which is why order matters.</p>
+    </div>
+  </div>
+</section>
+
+<section class="unit" id="p-sp26a" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals · most recent</div><h2>Spring 2026 · Set A</h2></div></div>
+  <p class="muted">Study hours tracker · Academic credits · Tourism. This is the newest paper; it adds arrays in JS and multi-condition GROUP BY / HAVING in SQL.</p>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">Q1 · JS</span><h4>Weekly study tracker</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Two inputs, <b>Subject Name</b> and <b>Study Hours</b>, an “Add Study” button and a label. Weekly goal 20 hours. On each click: add the hours to a running total; <b>store each subject name</b>; count sessions; average = total ÷ sessions. Display total, average, subjects, feedback: 0–5 “Start studying regularly!”, 6–12 “Good progress!”, 13–19 “Almost ready!”, 20+ “Weekly goal reached!”. <b>More than 7 sessions</b> without reaching 20 → “Increase your study time!”.</p></div>
+@@table sample
+Input (subject-hours)|Output
+English-2, English-3, Bangla-4, Physics-5|Total: 14 hours, Average: 3.5 hours, Subjects: [English, English, Bangla, Physics], Almost ready!
+Math-5, Physics-6, Chemistry-7, English-3|Total: 21 hours, Average: 5.25 hours, Subjects: [Math, Physics, Chemistry, English], Weekly goal reached!
+8 sessions, total 15 hours|Total: 15 hours, Average: 1.875 hours, Increase your study time!
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<head><title>Study Tracker</title></head>
+<body>
+    <h2>Weekly Study Tracker</h2>
+    <input type="text" id="subjectInput" placeholder="Subject Name">
+    <input type="number" id="hoursInput" placeholder="Study Hours">
+    <button id="addBtn">Add Study</button>
+    <br>
+    <label id="report">No sessions yet.</label>
+
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+@@code js script.js
+const WEEKLY_GOAL = 20;       // a)
+let totalHours = 0;
+let subjects = [];            // c) every subject entered
+let sessions = 0;             // d)
+
+document.getElementById("addBtn").addEventListener("click", function () {
+    let subjectBox = document.getElementById("subjectInput");
+    let hoursBox = document.getElementById("hoursInput");
+    let subject = subjectBox.value.trim();
+    let hours = Number(hoursBox.value);
+
+    if (subject === "" || hoursBox.value === "" || isNaN(hours)) return;
+
+    totalHours += hours;              // b)
+    subjects.push(subject);           // c)
+    sessions++;                       // d)
+    let average = totalHours / sessions;   // e)
+
+    let feedback;                     // g)
+    if (totalHours <= 5) feedback = "Start studying regularly!";
+    else if (totalHours <= 12) feedback = "Good progress!";
+    else if (totalHours <= 19) feedback = "Almost ready!";
+    else feedback = "Weekly goal reached!";
+
+    if (sessions > 7 && totalHours < WEEKLY_GOAL) {   // h) override
+        feedback = "Increase your study time!";
+    }
+
+    document.getElementById("report").innerHTML =     // f)
+        `Total: ${totalHours} hours<br>` +
+        `Average: ${average} hours<br>` +
+        `Subjects: [${subjects.join(", ")}]<br>` +
+        `Feedback: ${feedback}`;
+
+    subjectBox.value = "";
+    hoursBox.value = "";
+});
+@@end
+      </div></details>
+      <div class="demo">
+        <div class="demo-title"><span>Live demo</span></div>
+        <div class="demo-row"><label>Subject<input id="st-s" type="text" value="English"></label><label>Hours<input id="st-h" type="number" value="2"></label><button class="btn primary" id="st-btn" type="button">Add Study</button></div>
+        <div class="demo-row" style="margin-top:8px"><button class="btn" id="st-s1" type="button">Run sample 1</button><button class="btn" id="st-s2" type="button">Run sample 2</button><button class="btn" id="st-s3" type="button">Run sample 3 (8 sessions)</button><button class="btn" id="st-reset" type="button">Reset</button></div>
+        <div class="out" id="st-out">No sessions yet.</div>
+      </div>
+      <div class="note tip"><b class="k">Range gaps</b><p>Hours can be decimals, so a total like 5.5 would fall between “0–5” and “6–12”. Writing <code>&lt;= 5</code>, <code>&lt;= 12</code>, <code>&lt;= 19</code> covers every value.</p></div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>Academic credit tracker</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Form inputs: credits per course, courses completed, target graduation credits. Total = credits × courses. Excellent ≥ 120, Good ≥ 90, Average ≥ 60, Poor &lt; 60. Display total, category, target, and whether above / below / exactly at target, with the difference.</p></div>
+@@table sample
+Credits/Course|Courses|Target|Total|Progress|Result
+4|30|120|120|Excellent|Target met exactly (0 difference)
+3|35|100|105|Good|Above target by 5
+3|25|90|75|Average|Below target by 15
+4|10|60|40|Poor|Below target by 20
+@@end
+      <p>Same structure as Fall 2025 Q2 with new numbers. Patterns B + C.</p>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<form action="credits.php" method="post">
+    Credits per Course: <input type="number" name="credits"><br><br>
+    Courses Completed: <input type="number" name="courses"><br><br>
+    Target Graduation Credits: <input type="number" name="target"><br><br>
+    <input type="submit" value="Check Progress">
+</form>
+@@end
+@@code php credits.php
+<?php
+function trackProgress($credits, $courses, $target) {
+    $total = $credits * $courses;
+
+    if ($total >= 120)     $progress = "Excellent";
+    elseif ($total >= 90)  $progress = "Good";
+    elseif ($total >= 60)  $progress = "Average";
+    else                   $progress = "Poor";
+
+    $diff = $total - $target;
+    if ($diff > 0)        $result = "Above target by $diff";
+    elseif ($diff < 0)    $result = "Below target by " . abs($diff);
+    else                  $result = "Target met exactly (0 difference)";
+
+    echo "<table border='1'>";
+    echo "<tr><th>Total Credits</th><th>Progress</th><th>Target</th><th>Result</th></tr>";
+    echo "<tr><td>$total</td><td>$progress</td><td>$target</td><td>$result</td></tr>";
+    echo "</table>";
+}
+
+trackProgress((int)$_POST["credits"], (int)$_POST["courses"], (int)$_POST["target"]);
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="credits">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Credits/course<input id="cr-a" type="number" value="3"></label><label>Courses<input id="cr-b" type="number" value="35"></label><label>Target<input id="cr-c" type="number" value="100"></label></div>
+        <div class="out php" id="cr-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>Tourism spots</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Database <code>tourism</code>, table <code>tourist_spot</code>.</p><ol><li>SpotName, Region, Rating of spots with rating &gt; 4.5 <b>or</b> name containing ‘Beach’, by Rating DESC.</li><li>Rating between 4.0 and 4.5 (inclusive) <b>and</b> EntryFee &gt; 0 → Rating + 0.2 and EntryFee + 10%.</li><li>Per category: name, number of spots, average rating, total visitors; only categories with average rating &gt; 4.4; by average rating DESC.</li><li>Per region: total estimated revenue = SUM(EntryFee × VisitorsPerYear); only regions over 1,000,000; highest first.</li></ol></div>
+@@table given data
+SpotID|SpotName|Region|Category|Rating|EntryFee|VisitorsPerYear
+1|Cox’s Bazar Beach|CTG|Beach|4.9|0|150000
+2|Sundarbans Forest|KHL|Nature|4.3|150|80000
+3|Ratargul Forest|SYL|Nature|4.8|100|60000
+4|Kuakata Beach|PTU|Beach|4.5|0|90000
+5|Shat Gambuj Mosque|BGH|Heritage|4.7|30|70000
+6|Paharpur|NWG|Heritage|4.1|30|40000
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt
+CREATE DATABASE tourism;
+USE tourism;
+CREATE TABLE tourist_spot (
+    SpotID INT PRIMARY KEY,
+    SpotName VARCHAR(100),
+    Region VARCHAR(10),
+    Category VARCHAR(50),
+    Rating DECIMAL(2,1),          -- 4.9 → exact decimal, safe for BETWEEN
+    EntryFee DECIMAL(10,2),
+    VisitorsPerYear INT
+);
+INSERT INTO tourist_spot VALUES
+(1, 'Cox''s Bazar Beach', 'CTG', 'Beach', 4.9, 0, 150000),   -- '' = an apostrophe
+(2, 'Sundarbans Forest', 'KHL', 'Nature', 4.3, 150, 80000),
+(3, 'Ratargul Forest', 'SYL', 'Nature', 4.8, 100, 60000),
+(4, 'Kuakata Beach', 'PTU', 'Beach', 4.5, 0, 90000),
+(5, 'Shat Gambuj Mosque', 'BGH', 'Heritage', 4.7, 30, 70000),
+(6, 'Paharpur', 'NWG', 'Heritage', 4.1, 30, 40000);
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "tourism");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h3>1. Top-rated or Beach spots</h3>";
+$sql = "SELECT SpotName, Region, Rating
+        FROM tourist_spot
+        WHERE Rating > 4.5 OR SpotName LIKE '%Beach%'
+        ORDER BY Rating DESC";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo $row["SpotName"] . " (" . $row["Region"] . ") - " . $row["Rating"] . "<br>";
+}
+
+echo "<h3>2. Rating and Fee Update</h3>";
+$sql = "UPDATE tourist_spot
+        SET Rating = Rating + 0.2, EntryFee = EntryFee * 1.10
+        WHERE Rating BETWEEN 4.0 AND 4.5 AND EntryFee > 0";
+if ($conn->query($sql) === TRUE) echo "Updated " . $conn->affected_rows . " spots<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>3. Category Summary</h3>";
+$sql = "SELECT Category, COUNT(*) AS NumSpots,
+               ROUND(AVG(Rating), 2) AS AvgRating,
+               SUM(VisitorsPerYear) AS TotalVisitors
+        FROM tourist_spot
+        GROUP BY Category
+        HAVING AVG(Rating) > 4.4
+        ORDER BY AvgRating DESC";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo $row["Category"] . ": " . $row["NumSpots"] . " spots, avg "
+       . $row["AvgRating"] . ", " . $row["TotalVisitors"] . " visitors<br>";
+}
+
+echo "<h3>4. Regional Revenue</h3>";
+$sql = "SELECT Region, SUM(EntryFee * VisitorsPerYear) AS TotalRevenue
+        FROM tourist_spot
+        GROUP BY Region
+        HAVING TotalRevenue > 1000000
+        ORDER BY TotalRevenue DESC";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo $row["Region"] . ": " . number_format($row["TotalRevenue"]) . " BDT<br>";
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+@@table 1 · rating > 4.5 OR name LIKE '%Beach%', Rating DESC
+SpotName|Region|Rating
+Cox's Bazar Beach|CTG|4.9
+Ratargul Forest|SYL|4.8
+Shat Gambuj Mosque|BGH|4.7
+Kuakata Beach|PTU|4.5
+@@end
+      <p>Kuakata (4.5) isn’t &gt; 4.5, but its name contains “Beach”, so the <code>OR</code> lets it in.</p>
+@@table 2 · after the UPDATE (2 rows) | hl=2,6
+SpotID|SpotName|Rating|EntryFee
+1|Cox's Bazar Beach|4.9|0.00
+2|Sundarbans Forest|*4.5|*165.00
+3|Ratargul Forest|4.8|100.00
+4|Kuakata Beach|4.5|0.00
+5|Shat Gambuj Mosque|4.7|30.00
+6|Paharpur|*4.3|*33.00
+@@end
+      <p>Kuakata is in the rating range but its EntryFee is 0, so it’s skipped. Put both changes in <b>one</b> SET (<code>Rating = Rating + 0.2, EntryFee = EntryFee * 1.10</code>). With two separate UPDATEs, the second one re-checks the WHERE against the <em>new</em> ratings: a spot rated 4.4 would become 4.6 after the first statement and then miss its fee increase. This data happens to give the same result either way, but the single statement is the correct answer.</p>
+      <div class="grid">
+<div>
+@@table 3 · after part 2 (correct order)
+Category|NumSpots|AvgRating|TotalVisitors
+Beach|2|4.70|240000
+Nature|2|4.65|140000
+Heritage|2|4.50|110000
+@@end
+</div>
+<div>
+@@table 3 · if run BEFORE part 2
+Category|NumSpots|AvgRating|TotalVisitors
+Beach|2|4.70|240000
+Nature|2|4.55|140000
+@@end
+<p class="muted" style="font-size:.88rem">Heritage averages exactly 4.40 before the update, which is not &gt; 4.4.</p>
+</div>
+      </div>
+@@table 4 · revenue per region > 1,000,000
+Region|TotalRevenue
+KHL|13,200,000 (165 × 80,000)
+SYL|6,000,000 (100 × 60,000)
+BGH|2,100,000 (30 × 70,000)
+NWG|1,320,000 (33 × 40,000)
+@@end
+      <div class="note tip"><b class="k">HAVING with an alias</b><p>MySQL allows <code>HAVING TotalRevenue &gt; 1000000</code>. The fully portable form repeats the expression: <code>HAVING SUM(EntryFee * VisitorsPerYear) &gt; 1000000</code>. Both work in XAMPP.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="unit" id="p-sp26b" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals · most recent</div><h2>Spring 2026 · Set B</h2></div></div>
+  <p class="muted">Patient vitals · Mars rover batteries · Bookshop</p>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">Q1 · JS</span><h4>Patient vitals report</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Two text fields, <b>Heart Rate</b> and <b>SpO2</b>, a “Save Reading” button and a label. Keep every reading (e.g. in arrays). On each save: average heart rate and average SpO2 over all readings; Risk Score from the <em>current</em> reading: <code>(100 − SpO2) × 2 + |HeartRate − 80| × 0.5</code>; feedback “SAFE” if ≤ 10, “WARNING” if ≤ 20, “DANGER” above 20.</p></div>
+@@table sample
+HR, SpO2|Avg HR|Avg SpO2|Risk|Feedback
+80, 97|80|97|(3)×2 + 0×0.5 = 6.0|SAFE
+78, 95|79|96|(5)×2 + 2×0.5 = 11|WARNING
+130, 80|96|90.67|(20)×2 + 50×0.5 = 65|DANGER
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<head><title>Health Report</title></head>
+<body>
+    <h2>Patient Vitals</h2>
+    <input type="text" id="hrInput" placeholder="Heart Rate (bpm)">
+    <input type="text" id="spo2Input" placeholder="SpO2 (%)">
+    <button id="saveBtn">Save Reading</button>
+    <br>
+    <label id="report">No readings yet.</label>
+
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+@@code js script.js
+let heartRates = [];   // 2. every reading so far
+let spo2s = [];
+
+function average(arr) {
+    let sum = 0;
+    for (let x of arr) sum += x;
+    return sum / arr.length;
+}
+
+function round2(x) {               // 90.6666 → 90.67, 96 → 96
+    return Math.round(x * 100) / 100;
+}
+
+document.getElementById("saveBtn").addEventListener("click", function () {
+    let hr = Number(document.getElementById("hrInput").value);      // 1.
+    let spo2 = Number(document.getElementById("spo2Input").value);
+    if (isNaN(hr) || isNaN(spo2)) return;
+
+    heartRates.push(hr);
+    spo2s.push(spo2);
+
+    let avgHR = average(heartRates);                                 // 3a
+    let avgSpO2 = average(spo2s);                                    // 3b
+    let risk = (100 - spo2) * 2 + Math.abs(hr - 80) * 0.5;           // 3c (current reading)
+
+    let feedback;                                                    // 3d
+    if (risk <= 10) feedback = "SAFE";
+    else if (risk <= 20) feedback = "WARNING";
+    else feedback = "DANGER";
+
+    document.getElementById("report").innerHTML =
+        `Average Heart Rate: ${round2(avgHR)}<br>` +
+        `Average Oxygen Saturation: ${round2(avgSpO2)}<br>` +
+        `Risk Score: ${round2(risk)}<br>` +
+        `Feedback: ${feedback}`;
+});
+@@end
+      </div></details>
+      <div class="demo">
+        <div class="demo-title"><span>Live demo</span></div>
+        <div class="demo-row"><label>Heart rate<input id="vt-hr" type="text" value="80"></label><label>SpO2<input id="vt-sp" type="text" value="97"></label><button class="btn primary" id="vt-btn" type="button">Save Reading</button><button class="btn" id="vt-sample" type="button">Run all 3 samples</button><button class="btn" id="vt-reset" type="button">Reset</button></div>
+        <div class="out" id="vt-out">No readings yet.</div>
+      </div>
+      <div class="note"><b class="k">Two traps here</b><ul><li>Averages use <b>all</b> readings (arrays); the risk score uses only the <b>current</b> one.</li><li><code>|HeartRate − 80|</code> is <code>Math.abs(hr - 80)</code>. Without it, a heart rate of 78 would <em>lower</em> the risk.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>Mars rover battery modules</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Form inputs: mission distance (m), energy per meter, battery capacity. Total energy = distance × per-meter; modules = minimum whole modules; unused = carried − required. Efficient if unused ≤ 10% of carried energy, Acceptable ≤ 25%, else Wasteful.</p></div>
+@@table sample
+Distance|Per m|Capacity|Energy|Modules|Unused|Status
+1200|8|5000|9600|2|400|Efficient (4%)
+1500|9|4000|13500|4|2500|Acceptable (15.6%)
+1000|6|5000|6000|2|4000|Wasteful (40%)
+@@end
+      <p>Pattern A + B. The percentage is unused ÷ <b>carried</b> (modules × capacity), <em>not</em> unused ÷ required.</p>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<form action="rover.php" method="post">
+    Mission Distance (m): <input type="number" name="distance"><br><br>
+    Energy per Meter: <input type="number" name="energy_per_meter"><br><br>
+    Battery Capacity: <input type="number" name="capacity"><br><br>
+    <input type="submit" value="Calculate">
+</form>
+@@end
+@@code php rover.php
+<?php
+function planBatteries($distance, $perMeter, $capacity) {
+    $required = $distance * $perMeter;            // total energy needed
+    $modules  = ceil($required / $capacity);      // whole modules only
+    $carried  = $modules * $capacity;
+    $unused   = $carried - $required;
+    $percent  = ($unused / $carried) * 100;       // % of CARRIED energy
+
+    if ($percent <= 10)       $status = "Efficient";
+    elseif ($percent <= 25)   $status = "Acceptable";
+    else                      $status = "Wasteful";
+
+    echo "Total Energy Required: $required<br>";
+    echo "Battery Modules: $modules<br>";
+    echo "Unused Energy: $unused<br>";
+    echo "Status: $status<br>";
+}
+
+planBatteries((int)$_POST["distance"], (int)$_POST["energy_per_meter"], (int)$_POST["capacity"]);
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="rover">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Distance<input id="rv-a" type="number" value="1500"></label><label>Energy/m<input id="rv-b" type="number" value="9"></label><label>Capacity<input id="rv-c" type="number" value="4000"></label></div>
+        <div class="out php" id="rv-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>UIU bookshop</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Database <code>uiu_bookshop</code>, table <code>book_info</code>. Five parts: 1) Programming books by price DESC; 2) title, author, price where price &gt; 400 and Programming; 3) number of books per category; 4) total net worth = Σ(Price × Stock); 5) 10% price cut on Language books, then show their titles and new prices.</p></div>
+@@table given data
+BookID|BookTitle|Author|Category|Price|Stock
+1|Web Basics|John Smith|Programming|450|10
+2|Database Guide|Alice Roy|Programming|550|8
+3|English Grammar|Mary Khan|Language|300|15
+4|Business Math|David Lee|Business|400|12
+5|Python Mastery|Sara Ahmed|Programming|600|5
+6|French Made Easy|Paul Costa|Language|350|7
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt
+CREATE DATABASE uiu_bookshop;
+USE uiu_bookshop;
+CREATE TABLE book_info (
+    BookID INT PRIMARY KEY,
+    BookTitle VARCHAR(100),
+    Author VARCHAR(100),
+    Category VARCHAR(50),
+    Price DECIMAL(10,2),
+    Stock INT
+);
+INSERT INTO book_info VALUES
+(1, 'Web Basics', 'John Smith', 'Programming', 450, 10),
+(2, 'Database Guide', 'Alice Roy', 'Programming', 550, 8),
+(3, 'English Grammar', 'Mary Khan', 'Language', 300, 15),
+(4, 'Business Math', 'David Lee', 'Business', 400, 12),
+(5, 'Python Mastery', 'Sara Ahmed', 'Programming', 600, 5),
+(6, 'French Made Easy', 'Paul Costa', 'Language', 350, 7);
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "uiu_bookshop");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h3>1. Programming books (by price, high to low)</h3>";
+$result = $conn->query("SELECT * FROM book_info
+                        WHERE Category = 'Programming'
+                        ORDER BY Price DESC");
+while ($row = $result->fetch_assoc()) {
+    echo $row["BookTitle"] . " - " . $row["Author"] . " - " . $row["Price"] . " BDT<br>";
+}
+
+echo "<h3>2. Programming books over 400 BDT</h3>";
+$result = $conn->query("SELECT BookTitle, Author, Price FROM book_info
+                        WHERE Price > 400 AND Category = 'Programming'");
+while ($row = $result->fetch_assoc()) {
+    echo $row["BookTitle"] . " | " . $row["Author"] . " | " . $row["Price"] . "<br>";
+}
+
+echo "<h3>3. Books per Category</h3>";
+$result = $conn->query("SELECT Category, COUNT(*) AS NumBooks
+                        FROM book_info GROUP BY Category");
+while ($row = $result->fetch_assoc()) {
+    echo $row["Category"] . ": " . $row["NumBooks"] . "<br>";
+}
+
+echo "<h3>4. Total Net Worth</h3>";
+$result = $conn->query("SELECT SUM(Price * Stock) AS NetWorth FROM book_info");
+$row = $result->fetch_assoc();          // only one row → no loop needed
+echo "Net worth: " . $row["NetWorth"] . " BDT<br>";
+
+echo "<h3>5. 10% off Language books</h3>";
+$sql = "UPDATE book_info SET Price = Price * 0.90 WHERE Category = 'Language'";
+if ($conn->query($sql) === TRUE) {
+    $result = $conn->query("SELECT BookTitle, Price FROM book_info WHERE Category = 'Language'");
+    while ($row = $result->fetch_assoc()) {
+        echo $row["BookTitle"] . ": " . $row["Price"] . " BDT<br>";
+    }
+} else {
+    echo "Error: " . $conn->error;
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+      <div class="grid">
+<div>
+@@table 1 · Programming, Price DESC
+BookTitle|Price
+Python Mastery|600.00
+Database Guide|550.00
+Web Basics|450.00
+@@end
+</div>
+<div>
+@@table 2 · Price > 400 AND Programming
+BookTitle|Author|Price
+Web Basics|John Smith|450.00
+Database Guide|Alice Roy|550.00
+Python Mastery|Sara Ahmed|600.00
+@@end
+</div>
+<div>
+@@table 3 · COUNT(*) per Category
+Category|NumBooks
+Programming|3
+Language|2
+Business|1
+@@end
+</div>
+<div>
+@@table 4 & 5
+Result|Value
+Net worth|23,650.00
+English Grammar|*270.00
+French Made Easy|*315.00
+@@end
+</div>
+      </div>
+      <div class="note"><b class="k">“Number of books available” can be read two ways</b><p><code>COUNT(*)</code> counts titles (3 / 2 / 1). If the examiner means copies in stock, use <code>SUM(Stock)</code> (Programming 23, Language 22, Business 12). Write the one you choose and add the other as a comment.</p></div>
+      <p>Net worth: 450×10 + 550×8 + 300×15 + 400×12 + 600×5 + 350×7 = 4500 + 4400 + 4500 + 4800 + 3000 + 2450 = <b>23,650</b>.</p>
+    </div>
+  </div>
+</section>

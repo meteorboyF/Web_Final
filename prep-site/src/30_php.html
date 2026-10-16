@@ -1,0 +1,321 @@
+<!-- =============================== PHP =============================== -->
+<section class="unit" id="php-run" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span> Question 2 · 10 marks</div><h2>How PHP runs</h2></div></div>
+  <p>PHP is a <b>server-side</b> language. Your browser never sees PHP code; it only sees what PHP <code>echo</code>s. A PHP question is two files: an HTML <b>form</b> that collects numbers and a <b>.php</b> file that the form sends them to.</p>
+  <div class="flow">
+    <div class="step"><i>index.html</i><b>Form</b><span>&lt;input name="students"&gt; … user clicks Submit</span></div>
+    <div class="step"><i>HTTP POST</i><b>Data travels</b><span>students=10&amp;slices=3 sent to process.php</span></div>
+    <div class="step"><i>process.php</i><b>PHP runs</b><span>$_POST["students"] → "10" → calculate</span></div>
+    <div class="step"><i>Browser</i><b>New page</b><span>shows only the echoed text</span></div>
+  </div>
+  <p>Notice that the browser goes to a <em>new page</em>. That is why PHP doesn’t need global “memory” the way JS does: each submit is a fresh, one-shot calculation.</p>
+  <div class="vs">
+    <div><h5><span class="chip js">JS</span> Q1</h5><p>Runs in the browser · no form · find by <code>id</code> · page stays, values accumulate.</p></div>
+    <div><h5><span class="chip php">PHP</span> Q2</h5><p>Runs on the server · needs form · find by <code>name</code> · each submit is a new page.</p></div>
+  </div>
+</section>
+
+<section class="unit" id="php-syntax" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span></div><h2>Syntax, variables and echo</h2></div></div>
+@@code php the essentials
+<?php
+// every variable starts with $ (and names are case-sensitive: $Name ≠ $name)
+$name = "Karim";      // string
+$age = 22;            // int
+$gpa = 3.75;          // float
+$passed = true;       // bool
+
+// every statement ends with ;
+
+echo "Hello World";
+echo "Name: " . $name;              // . joins strings (NOT +)
+echo "Age: $age";                   // "double quotes" put variables in for you
+echo 'Age: $age';                   // 'single quotes' print $age literally!
+echo "Total: " . ($a + $b) . "<br>";// maths in brackets; <br> = new line in the page
+echo "Sum: {$row['Total']}";        // {} around array values inside a string
+?>
+@@end
+  <div class="note warn"><b class="k">JS habits that break PHP</b><ul>
+    <li><code>"a" + "b"</code> in PHP tries to add numbers. Use <code>"a" . "b"</code>.</li>
+    <li>Forgetting <code>$</code> → “Undefined constant”.</li>
+    <li>Forgetting <code>;</code> → “syntax error, unexpected …” on the <em>next</em> line.</li>
+    <li><code>"\n"</code> doesn’t create a new line in the browser. Use <code>&lt;br&gt;</code>.</li>
+    <li>It’s <code>elseif</code> (one word) or <code>else if</code>. Both work in PHP.</li>
+  </ul></div>
+  <h4>Printing a tidy result table</h4>
+@@code php
+echo "<table border='1'>";
+echo "<tr><th>Total Pizzas</th><th>Leftover</th></tr>";
+echo "<tr><td>$pizzas</td><td>$leftover</td></tr>";
+echo "</table>";
+@@end
+  <p>Echoing HTML tags is allowed. A <code>&lt;table&gt;</code> or <code>&lt;br&gt;</code> lines are both fine for marks; a table looks closest to the sample outputs.</p>
+</section>
+
+<section class="unit" id="php-forms" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span> · most important</div><h2>HTML forms → $_POST</h2></div></div>
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Pizza Party Calculator</h2>
+    <form action="process.php" method="post">
+        <label>Number of Students:</label>
+        <input type="number" name="students"><br><br>
+
+        <label>Slices per Student:</label>
+        <input type="number" name="slices_per_student"><br><br>
+
+        <label>Slices per Pizza:</label>
+        <input type="number" name="slices_per_pizza"><br><br>
+
+        <input type="submit" value="Calculate">
+    </form>
+</body>
+</html>
+@@end
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Attribute</th><th>What it does</th></tr></thead><tbody>
+    <tr><td><code>action="process.php"</code></td><td>The PHP file that receives the data when the form is submitted.</td></tr>
+    <tr><td><code>method="post"</code></td><td>Sends data hidden in the request body. Read it with <code>$_POST</code>.</td></tr>
+    <tr><td><code>method="get"</code></td><td>Puts data in the URL (<code>?students=10&amp;…</code>). Read it with <code>$_GET</code>.</td></tr>
+    <tr><td><code>name="students"</code></td><td>The <b>key</b> PHP uses: <code>$_POST["students"]</code>. Must match exactly. An input with no <code>name</code> is never sent!</td></tr>
+    <tr><td><code>type="submit"</code></td><td><code>&lt;input type="submit"&gt;</code> or <code>&lt;button type="submit"&gt;</code> both submit.</td></tr>
+  </tbody></table></div>
+@@code php process.php
+<?php
+$students         = (int) $_POST["students"];            // cast text → int
+$slicesPerStudent = (int) $_POST["slices_per_student"];
+$slicesPerPizza   = (int) $_POST["slices_per_pizza"];
+
+// floats when decimals are possible:
+// $hours = (float) $_POST["hours"];   or floatval($_POST["hours"])
+// alternative int cast: intval($_POST["students"])
+?>
+@@end
+  <div class="note"><b class="k">Is casting required?</b><p>PHP converts numeric strings automatically in maths (<code>"10" * 3</code> is 30), so code without <code>(int)</code> usually still works. The lecture casts anyway: it’s safer, and examiners like seeing it.</p></div>
+
+  <h3>Other form controls (shown in the prep session)</h3>
+@@code html a dropdown: <select>
+<form action="index.php" method="post">
+    Exam type:
+    <select name="exam-type">
+        <option value="mid">Mid</option>
+        <option value="final">Final</option>
+    </select><br>
+    <input name="marks" placeholder="marks">
+    <button type="submit">Submit</button>
+</form>
+@@end
+@@code php reading the dropdown
+<?php
+$exam_type = $_POST["exam-type"];    // "mid" or "final" — the option's value
+$marks = $_POST["marks"];
+
+if ($exam_type == "mid")
+    echo "Mid Marks: " . $marks . "<br>";
+else if ($exam_type == "final")
+    echo "Final Marks: " . $marks . "<br>";
+?>
+@@end
+@@code html several buttons in one form (the shop example)
+<button name="action" value="buy-item"  type="submit">Buy Item</button>
+<button name="action" value="add-item"  type="submit">Add Item</button>
+<button name="action" value="add-stock" type="submit">Add Stock</button>
+<!-- PHP: $_POST["action"] holds the value of the button that was clicked -->
+@@end
+
+  <h3>Optional: one file with isset()</h3>
+  <p>You can put the form and PHP in the same <code>.php</code> file. Use <code>isset()</code> so the calculation only runs after submit. Two files is simpler and is what the solutions use.</p>
+@@code php calc.php — form + logic in one file
+<form action="calc.php" method="post">
+    <input type="number" name="a"> <input type="submit" name="go" value="Go">
+</form>
+<?php
+if (isset($_POST["go"])) {           // true only after the button was pressed
+    $a = (int) $_POST["a"];
+    echo "Double: " . ($a * 2);
+}
+?>
+@@end
+</section>
+
+<section class="unit" id="php-logic" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span></div><h2>Conditions and functions</h2></div></div>
+  <h3>if / elseif / else: classification from the top down</h3>
+@@code php
+<?php
+if ($total >= 500) {
+    $performance = "Excellent";
+} elseif ($total >= 300) {     // already know $total < 500
+    $performance = "Good";
+} elseif ($total >= 150) {
+    $performance = "Average";
+} else {
+    $performance = "Poor";
+}
+?>
+@@end
+  <p>Start with the <b>highest</b> threshold and go down. Each <code>elseif</code> then only needs the lower bound.</p>
+  <h4>Comparison and logic operators</h4>
+  <p><code>== != &lt; &gt; &lt;= &gt;=</code> compare; <code>===</code> also checks the type. <code>&amp;&amp;</code> (or <code>and</code>), <code>||</code> (or <code>or</code>), <code>!</code> combine conditions, just like JS.</p>
+
+  <h3>Functions</h3>
+  <p>Questions say “Write a PHP function that takes three integers…”. Define the function with parameters, then call it with the form values.</p>
+@@code php
+<?php
+// define
+function calculateVenue($attendees, $costPerPerson, $capacity) {
+    $venues = ceil($attendees / $capacity);
+    $empty  = $venues * $capacity - $attendees;
+    $wasted = $empty * $costPerPerson;
+
+    echo "Total Venues: $venues<br>";
+    echo "Empty Seats: $empty<br>";
+    echo "Wasted Money: $wasted BDT<br>";
+}
+
+// call with form data
+calculateVenue((int)$_POST["attendees"], (int)$_POST["cost"], (int)$_POST["capacity"]);
+?>
+@@end
+  <p>Echoing inside the function is fine for the exam. If you want the function to <b>return</b> several values, return an array:</p>
+@@code php
+<?php
+function add($a, $b) {
+    return $a + $b;
+}
+echo add(10, 20);   // 30
+
+function stats($a, $b) {
+    return [$a + $b, $a * $b];        // return two values as an array
+}
+[$sum, $product] = stats(3, 4);       // unpack: $sum = 7, $product = 12
+?>
+@@end
+  <div class="note warn"><b class="k">Scope</b><p>Inside a PHP function you can’t see variables from outside (unlike JS). Pass everything in as parameters.</p></div>
+</section>
+
+<section class="unit" id="php-math-arrays" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span></div><h2>Math functions and arrays</h2></div></div>
+  <h3>Math: ceil() is the star</h3>
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Function</th><th>Result</th><th>When</th></tr></thead><tbody>
+    <tr><td><code>ceil(30/8)</code></td><td>4 (3.75 rounded <b>up</b>)</td><td>“minimum number of whole pizzas / venues / screens / modules”</td></tr>
+    <tr><td><code>floor(3.9)</code></td><td>3</td><td>“how many complete …s fit”</td></tr>
+    <tr><td><code>round(3.456, 2)</code></td><td>3.46</td><td>tidy money / averages</td></tr>
+    <tr><td><code>abs(-50)</code></td><td>50</td><td>“below target by 50”</td></tr>
+    <tr><td><code>min(12,15,14)</code> / <code>max(…)</code></td><td>12 / 15</td><td>best-two-of-three, limits</td></tr>
+    <tr><td><code>10 % 3</code></td><td>1</td><td>remainder (another way to detect leftovers)</td></tr>
+    <tr><td><code>intdiv(10, 3)</code></td><td>3</td><td>whole-number division</td></tr>
+    <tr><td><code>number_format(8400)</code></td><td>"8,400"</td><td>samples print money with commas</td></tr>
+    <tr><td><code>number_format(262.5, 2)</code></td><td>"262.50"</td><td>2 decimals + commas</td></tr>
+  </tbody></table></div>
+  <div class="note tip"><b class="k">round() is a trap</b><p><code>round(3.2)</code> is 3, but 3 pizzas can’t feed 3.2 pizzas’ worth of people. Whenever you “can’t order a fraction”, use <code>ceil()</code>.</p></div>
+  <p class="muted" style="font-size:.9rem"><code>ceil()</code> returns a float. <code>echo ceil(3.75)</code> prints <code>4</code>, so it looks the same.</p>
+
+  <h3>Arrays</h3>
+@@code php
+<?php
+$marks = [12, 15, 14];            // indexed array (also: array(12, 15, 14))
+echo $marks[0];                   // 12
+echo count($marks);               // 3
+echo array_sum($marks);           // 41
+echo max($marks);                 // 15  (min/max also accept an array)
+
+sort($marks);                     // ascending  → [12, 14, 15]
+rsort($marks);                    // descending → [15, 14, 12]
+$bestTwo = $marks[0] + $marks[1]; // 29
+
+$marks[] = 18;                    // push to end
+array_push($marks, 20);           // same thing
+
+foreach ($marks as $m) {          // loop every value
+    echo $m . "<br>";
+}
+
+// associative array: key => value  (this is what fetch_assoc() returns!)
+$row = ["name" => "Karim", "grade" => 85];
+echo $row["name"];                // Karim
+foreach ($row as $key => $value) {
+    echo "$key: $value<br>";
+}
+?>
+@@end
+  <h3>Loops</h3>
+@@code php
+<?php
+for ($i = 1; $i <= 5; $i++) { echo $i; }
+$n = 3;
+while ($n > 0) { echo $n; $n--; }
+?>
+@@end
+</section>
+
+<section class="unit" id="php-patterns" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip php">PHP</span> · the templates</div><h2>The four PHP question patterns</h2></div></div>
+  <p>Every PHP question from 2024 to 2026 is one of these four (or a mix). Learn the formula for each one.</p>
+
+  <h3>Pattern A · Resource allocation (ceil + leftover + waste)</h3>
+  <p class="muted">Pizza party · Venue booking · Movie screens · Battery modules</p>
+@@code txt the formula
+demand     = people × need per person          (or energy = distance × per-meter)
+units      = ceil(demand / capacity per unit)  ← round UP
+supplied   = units × capacity per unit
+leftover   = supplied − demand                 (empty seats / leftover slices / unused energy)
+wasted     = leftover × cost of ONE leftover thing   ← read the question!
+@@end
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Paper</th><th>“Wasted money” was…</th><th>Check (row 1)</th></tr></thead><tbody>
+    <tr><td>Fall 2024 Pizza</td><td>leftover slices × (1050 ÷ slices per pizza)</td><td>2 × 131.25 = 262.5</td></tr>
+    <tr><td>Spring 2025 Venue</td><td>empty seats × cost per person <span class="muted">(the 15,000 venue price is a distractor)</span></td><td>70 × 120 = 8,400</td></tr>
+    <tr><td>Summer 2025 Movie</td><td>empty seats × ticket price <span class="muted">(25,000 rent is a distractor)</span></td><td>30 × 500 = 15,000</td></tr>
+    <tr><td>Spring 2026 B Battery</td><td>no money; classify unused ÷ carried as a %</td><td>400 ÷ 10000 = 4% → Efficient</td></tr>
+  </tbody></table></div>
+
+  <h3>Pattern B · Classification by thresholds</h3>
+  <p class="muted">Sales performance · Credit progress · Battery efficiency · Pass/Fail</p>
+@@code php
+<?php
+if ($total >= 120)      $cat = "Excellent";
+elseif ($total >= 90)   $cat = "Good";
+elseif ($total >= 60)   $cat = "Average";
+else                    $cat = "Poor";
+?>
+@@end
+
+  <h3>Pattern C · Compare with a target</h3>
+@@code php
+<?php
+$diff = $total - $target;
+if ($diff > 0)      $result = "Above target by $diff";
+elseif ($diff < 0)  $result = "Below target by " . abs($diff);
+else                $result = "Target met exactly (0 difference)";
+?>
+@@end
+
+  <h3>Pattern D · Best N of M</h3>
+@@code php
+<?php
+$bestTwo = ($ct1 + $ct2 + $ct3) - min($ct1, $ct2, $ct3);   // drop the lowest
+$bestTwoAvg = $bestTwo / 2;                                 // if they want the average
+// or: $a = [$ct1,$ct2,$ct3]; rsort($a); $bestTwo = $a[0] + $a[1];
+?>
+@@end
+
+  <h3>Answer template</h3>
+@@code php process.php — the shape of every Q2 answer
+<?php
+// 1. READ THE HTML
+$x = (int) $_POST["x"];
+$y = (int) $_POST["y"];
+$z = (int) $_POST["z"];
+
+// 2. CALCULATION (inside a function if the question says "function")
+function solve($x, $y, $z) {
+    $total = $x * $y;
+    // ... ceil / if-elseif / compare ...
+    // 3. OUTPUT
+    echo "Total: $total<br>";
+}
+solve($x, $y, $z);
+?>
+@@end
+</section>

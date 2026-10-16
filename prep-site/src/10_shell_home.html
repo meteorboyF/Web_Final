@@ -1,0 +1,120 @@
+<div class="mobile-bar"><button class="btn" id="navToggle" type="button" aria-label="Open contents">☰ Contents</button><b>CSE 4165 Final</b></div>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+<aside class="side" id="side">
+  <div class="brand">CSE 4165 Final Prep<small>JS · PHP · MySQL — 30 marks, 2 hours</small></div>
+  <div class="progress"><span id="progText">0 of 0 topics learned</span><div class="bar"><i id="progBar"></i></div></div>
+  <nav class="nav" id="nav">
+    <div class="nav-group">Start here</div>
+    <a href="#start">Exam map<span class="tick"></span></a>
+    <a href="#setup">XAMPP &amp; how to run<span class="tick"></span></a>
+    <div class="nav-group"><span class="chip js">JS</span> Question 1</div>
+    <a href="#js-run">How JS runs in a page<span class="tick"></span></a>
+    <a href="#js-basics">Variables, types, input<span class="tick"></span></a>
+    <a href="#js-control">Operators &amp; if / loops<span class="tick"></span></a>
+    <a href="#js-functions">Functions<span class="tick"></span></a>
+    <a href="#js-arrays">Arrays<span class="tick"></span></a>
+    <a href="#js-strings-math">Strings, Math, regex<span class="tick"></span></a>
+    <a href="#js-dom">The DOM<span class="tick"></span></a>
+    <a href="#js-pattern">The exam workflow<span class="tick"></span></a>
+    <div class="nav-group"><span class="chip php">PHP</span> Question 2</div>
+    <a href="#php-run">How PHP runs<span class="tick"></span></a>
+    <a href="#php-syntax">Syntax &amp; echo<span class="tick"></span></a>
+    <a href="#php-forms">HTML forms → $_POST<span class="tick"></span></a>
+    <a href="#php-logic">Conditions &amp; functions<span class="tick"></span></a>
+    <a href="#php-math-arrays">Math &amp; arrays<span class="tick"></span></a>
+    <a href="#php-patterns">The 4 question patterns<span class="tick"></span></a>
+    <div class="nav-group"><span class="chip sql">SQL</span> Question 3</div>
+    <a href="#sql-basics">Databases &amp; tables<span class="tick"></span></a>
+    <a href="#sql-select">SELECT, WHERE, ORDER BY<span class="tick"></span></a>
+    <a href="#sql-aggregate">GROUP BY &amp; HAVING<span class="tick"></span></a>
+    <a href="#sql-update">UPDATE<span class="tick"></span></a>
+    <a href="#sql-advanced">CASE &amp; subqueries<span class="tick"></span></a>
+    <a href="#sql-php">PHP + mysqli<span class="tick"></span></a>
+    <div class="nav-group">Past finals, solved</div>
+    <a href="#p-f24">Fall 2024<span class="tick"></span></a>
+    <a href="#p-s25">Spring 2025<span class="tick"></span></a>
+    <a href="#p-su25">Summer 2025<span class="tick"></span></a>
+    <a href="#p-f25">Fall 2025<span class="tick"></span></a>
+    <a href="#p-sp26a">Spring 2026 · Set A<span class="tick"></span></a>
+    <a href="#p-sp26b">Spring 2026 · Set B<span class="tick"></span></a>
+    <a href="#session">Live session examples<span class="tick"></span></a>
+    <div class="nav-group">Test yourself</div>
+    <a href="#practice">Practice problems<span class="tick"></span></a>
+    <a href="#quiz">Quiz<span class="tick"></span></a>
+    <a href="#cheat">One-page cheatsheet<span class="tick"></span></a>
+  </nav>
+  <div class="side-tools"><button class="btn" id="themeBtn" type="button">Toggle theme</button><button class="btn" id="resetBtn" type="button">Reset progress</button></div>
+</aside>
+
+<main><div class="wrap">
+
+<!-- =============================== START =============================== -->
+<section class="unit" id="start" data-topic>
+  <div class="eyebrow">UIU · CSE 4165 / CSE 465 Web Programming · Final</div>
+  <div class="unit-head"><h1>Everything you need for the web final</h1></div>
+  <p class="lede">Every final since Fall 2024 uses the same three-question layout. This guide teaches each JS, PHP and MySQL idea those questions use, then works through all six past papers with code, traces and live demos.</p>
+
+  <div class="paper" aria-label="The shape of the exam">
+    <div class="paper-top"><b>Final Exam · Web Programming</b><span>Total Marks: 30 · Duration: 2 Hours · 3 questions × 10</span></div>
+    <div class="pq"><span class="n">1.</span><div><p><b>HTML + JavaScript.</b> Take input from HTML → do something in JS → show output in HTML. Usually a “tracker” that keeps a running total, a count and gives feedback by range.</p><span class="chip js">JS</span> <span class="chip neutral">no &lt;form&gt; · use id</span></div><span class="m">[10]</span></div>
+    <div class="pq"><span class="n">2.</span><div><p><b>HTML form + PHP.</b> Form sends numbers to a PHP file → calculate (often <code>ceil()</code>, classification, target comparison) → <code>echo</code> the result.</p><span class="chip php">PHP</span> <span class="chip neutral">&lt;form action method&gt; · use name</span></div><span class="m">[10]</span></div>
+    <div class="pq"><span class="n">3.</span><div><p><b>PHP + MySQL.</b> A table is given. Create it, then write PHP that runs 4–5 SELECT / UPDATE queries and prints results. No HTML needed.</p><span class="chip sql">SQL</span> <span class="chip php">PHP</span> <span class="chip neutral">GROUP BY · UPDATE … WHERE</span></div><span class="m">[10]</span></div>
+  </div>
+
+  <p class="muted" style="font-size:.9rem">One paper broke the pattern: in Fall 2025, Q1 was a second PHP form question instead of JS. Prepare for any of the three types in any slot.</p>
+
+  <h3>Rules from the course walkthrough</h3>
+  <div class="vs">
+    <div><h5><span class="chip js">JS</span> Question</h5><p><b>Do not</b> use a <code>&lt;form&gt;</code> tag. A form reloads the page on submit and wipes your JS variables.</p><p>Find elements with <code>id</code> (or <code>class</code>): <code>document.getElementById("x")</code>.</p></div>
+    <div><h5><span class="chip php">PHP</span> Question</h5><p><b>Use</b> <code>&lt;form action="file.php" method="post"&gt;</code>.</p><p>PHP finds inputs by their <code>name</code> attribute: <code>$_POST["x"]</code>.</p></div>
+  </div>
+  <div class="note"><b class="k">SQL rule</b><p>Three kinds of query do <b>not</b> need to be in PHP: <b>CREATE DATABASE</b>, <b>CREATE TABLE</b> and <b>INSERT</b>. Write them wherever is easiest (ideally a <code>.txt</code> file, or run them in phpMyAdmin). <b>SELECT</b> and <b>UPDATE</b> queries go inside PHP code.</p></div>
+
+  <h3>How the marks are spread</h3>
+  <div class="grid">
+    <div class="card"><span class="chip js">JavaScript · 10</span><h4 style="margin-top:10px">Study: Basic JS + Intermediate JS</h4><p>Global variables, <code>addEventListener</code>, <code>.value</code>, <code>Number()</code>, if-else ranges, arrays, <code>innerHTML</code>.</p></div>
+    <div class="card"><span class="chip php">PHP + MySQL · 20</span><h4 style="margin-top:10px">Study: PHP_and_MySQL lecture + practice</h4><p><code>$_POST</code>, <code>ceil()</code>, if-elseif, functions; then GROUP BY, HAVING, UPDATE, <code>fetch_assoc()</code>.</p></div>
+  </div>
+
+  <h3>A 2-hour plan for the exam</h3>
+  <div class="flow">
+    <div class="step"><i>0–5 min</i><b>Read all three</b><span>Check every sample output against the formula before coding.</span></div>
+    <div class="step"><i>5–40</i><b>Q1</b><span>HTML skeleton → globals → listener → logic → display.</span></div>
+    <div class="step"><i>40–75</i><b>Q2</b><span>Form with names → PHP reads → calculate → echo.</span></div>
+    <div class="step"><i>75–115</i><b>Q3</b><span>CREATE/INSERT in .txt → connection → each part → close.</span></div>
+    <div class="step"><i>115–120</i><b>Check</b><span><code>$</code> signs, semicolons, matching names, DESC.</span></div>
+  </div>
+  <div class="note tip"><b class="k">The habit that wins marks</b><p>Every past paper had at least one sample row that only works if you read the formula carefully (pizza cost <em>per slice</em>, venue waste per <em>person</em>, password length beyond the minimum, “average” that was really a sum). Before you write code, run the first sample row through your formula by hand.</p></div>
+</section>
+
+<!-- =============================== SETUP =============================== -->
+<section class="unit" id="setup" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Start here</div><h2>XAMPP and how to run your code</h2></div></div>
+  <p>JavaScript runs inside the browser, so double-clicking <code>index.html</code> is enough. PHP is different: it runs on a <b>server</b>. The browser asks the server for a <code>.php</code> file, the server runs the PHP, and sends back only the HTML it printed. XAMPP gives you that server (Apache) and a database (MySQL / MariaDB) on your own machine.</p>
+  <div class="flow">
+    <div class="step"><i>Browser</i><b>Request</b><span>localhost/q2/index.html → you submit the form</span></div>
+    <div class="step"><i>Apache</i><b>Runs PHP</b><span>q2/process.php reads $_POST and calculates</span></div>
+    <div class="step"><i>MySQL</i><b>Data</b><span>PHP sends SQL with $conn-&gt;query()</span></div>
+    <div class="step"><i>Browser</i><b>Response</b><span>Only the echoed HTML comes back</span></div>
+  </div>
+  <h3>Steps (from the PHP session’s howTo)</h3>
+  <ol>
+    <li>Open the XAMPP Control Panel and <b>Start</b> both <b>Apache</b> and <b>MySQL</b>.</li>
+    <li>Go to <code>C:\xampp\htdocs</code> (Mac: <code>/Applications/XAMPP/xamppfiles/htdocs</code>). Create one folder per question, e.g. <code>q1</code>, <code>q2</code>, <code>q3</code>, and open it in VS Code.</li>
+    <li>Open pages through the server: <code>http://localhost/q2/index.html</code>. Opening a PHP file as <code>file:///…</code> shows the raw PHP source instead of running it.</li>
+    <li>For the database, open <code>http://localhost/phpmyadmin</code> → <b>SQL</b> tab → paste your CREATE / INSERT queries → Go.</li>
+  </ol>
+  <div class="note warn"><b class="k">Common setup mistakes</b><ul>
+    <li>MySQL won’t start → another MySQL is already using port 3306. Stop it, or change the port in XAMPP config.</li>
+    <li>Page downloads or shows code → you opened it with <code>file://</code>, not <code>localhost</code>.</li>
+    <li>“Unknown database” → the database name in <code>new mysqli(…)</code> doesn’t match what you created.</li>
+    <li>XAMPP defaults: user <code>root</code>, password <code>""</code> (empty).</li>
+  </ul></div>
+  <h4>What to put in each question folder</h4>
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Question</th><th>Files</th><th>How you open it</th></tr></thead><tbody>
+    <tr><td><span class="chip js">Q1 JS</span></td><td><code>index.html</code> + <code>script.js</code></td><td>Double-click, or localhost</td></tr>
+    <tr><td><span class="chip php">Q2 PHP</span></td><td><code>index.html</code> (form) + <code>process.php</code></td><td><code>localhost/q2/index.html</code></td></tr>
+    <tr><td><span class="chip sql">Q3 SQL</span></td><td><code>queries.txt</code> (CREATE/INSERT) + <code>index.php</code></td><td>Run txt in phpMyAdmin, then <code>localhost/q3/index.php</code></td></tr>
+  </tbody></table></div>
+</section>

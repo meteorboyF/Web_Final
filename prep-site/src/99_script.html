@@ -1,0 +1,357 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" data-manual></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const r2 = x => Math.round(x * 100) / 100;
+  const fmt = n => Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+  /* ---------- syntax highlight ---------- */
+  try { if (window.Prism) Prism.highlightAll(); } catch (e) {}
+
+  /* ---------- copy buttons ---------- */
+  document.querySelectorAll("figure.code .copy").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const code = btn.closest("figure").querySelector("code");
+      const text = code.innerText;
+      const done = () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = "Copy"), 1400); };
+      const fallback = () => {
+        const sel = window.getSelection(), range = document.createRange();
+        range.selectNodeContents(code); sel.removeAllRanges(); sel.addRange(range);
+        btn.textContent = "Selected: press Ctrl+C";
+        setTimeout(() => (btn.textContent = "Copy"), 2200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    });
+  });
+
+  /* ---------- theme ---------- */
+  const savedTheme = store.get("cse4165-theme", null);
+  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+  $("themeBtn").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    store.set("cse4165-theme", next);
+  });
+
+  /* ---------- mobile nav ---------- */
+  const closeNav = () => document.body.classList.remove("nav-open");
+  $("navToggle").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+  $("scrim").addEventListener("click", closeNav);
+  document.querySelectorAll("#nav a").forEach(a => a.addEventListener("click", closeNav));
+
+  /* ---------- progress (learned checkboxes) ---------- */
+  const topics = [...document.querySelectorAll("section[data-topic]")];
+  const learned = store.get("cse4165-learned", {});
+  topics.forEach(sec => {
+    const head = sec.querySelector(".unit-head");
+    if (!head) return;
+    const lab = document.createElement("label");
+    lab.className = "learned";
+    lab.innerHTML = '<input type="checkbox" id="learn-' + sec.id + '"> Mark as learned';
+    const cb = lab.querySelector("input");
+    cb.checked = !!learned[sec.id];
+    cb.addEventListener("change", () => { learned[sec.id] = cb.checked; store.set("cse4165-learned", learned); paintProgress(); });
+    head.appendChild(lab);
+  });
+  function paintProgress() {
+    const n = topics.filter(s => learned[s.id]).length;
+    $("progText").textContent = n + " of " + topics.length + " topics learned";
+    $("progBar").style.width = (100 * n / topics.length) + "%";
+    document.querySelectorAll("#nav a").forEach(a => {
+      a.classList.toggle("done", !!learned[a.getAttribute("href").slice(1)]);
+    });
+  }
+  paintProgress();
+  $("resetBtn").addEventListener("click", () => {
+    Object.keys(learned).forEach(k => delete learned[k]);
+    store.set("cse4165-learned", learned);
+    document.querySelectorAll(".learned input").forEach(cb => (cb.checked = false));
+    paintProgress();
+  });
+
+  /* ---------- active nav item ---------- */
+  const navLinks = {};
+  document.querySelectorAll("#nav a").forEach(a => (navLinks[a.getAttribute("href").slice(1)] = a));
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting && navLinks[en.target.id]) {
+          Object.values(navLinks).forEach(a => a.classList.remove("active"));
+          navLinks[en.target.id].classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    topics.forEach(s => io.observe(s));
+  }
+
+  /* ---------- self-test mode ---------- */
+  document.querySelectorAll("[data-selftest]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const sols = document.querySelectorAll('section[id^="p-"] details.sol');
+      const anyOpen = [...sols].some(d => d.open);
+      sols.forEach(d => (d.open = !anyOpen));
+      btn.textContent = anyOpen ? "Show all solutions again" : "Self-test mode: hide all solutions";
+    });
+  });
+
+  /* =================== DEMOS =================== */
+  // string vs number
+  function concatDemo() {
+    const a = $("dc-a").value, b = $("dc-b").value;
+    $("dc-out").innerHTML =
+      `a + b → <b>"${esc(a + b)}"</b> (strings glued together)<br>` +
+      `Number(a) + Number(b) → <b>${esc(Number(a) + Number(b))}</b>`;
+  }
+  $("dc-a").addEventListener("input", concatDemo); $("dc-b").addEventListener("input", concatDemo); concatDemo();
+
+  // scope
+  let gCount = 0;
+  $("sc-btn").addEventListener("click", function () {
+    let localCount = 0; gCount++; localCount++;
+    $("sc-out").textContent = "global count = " + gCount + " · local count = " + localCount;
+  });
+
+  // array
+  let readings = [];
+  function showArr() {
+    const avg = readings.length ? r2(readings.reduce((a, b) => a + b, 0) / readings.length) : 0;
+    $("ar-out").innerHTML = `readings = [${readings.join(", ")}]<br>length = ${readings.length} · average = ${avg}` +
+      (readings.length ? ` · max = ${Math.max(...readings)}` : "");
+  }
+  $("ar-btn").addEventListener("click", () => { const v = Number($("ar-in").value); if ($("ar-in").value === "" || isNaN(v)) return; readings.push(v); showArr(); });
+  $("ar-reset").addEventListener("click", () => { readings = []; showArr(); });
+
+  // guessing game
+  let secret, guesses, over;
+  function newGame(fixed) {
+    secret = fixed || Math.floor(Math.random() * (5000 - 500 + 1)) + 500;
+    guesses = 0; over = false;
+    $("g-in").disabled = false; $("g-btn").disabled = false;
+    $("g-out").textContent = "Make your first guess...";
+    $("g-log").innerHTML = ""; peek();
+  }
+  function peek() { $("g-in").placeholder = $("g-peek").checked ? "secret is " + secret : (secret === 37 ? "secret = 37" : "500–5000"); }
+  $("g-peek").addEventListener("change", peek);
+  $("g-btn").addEventListener("click", function () {
+    if (over) return;
+    const guess = parseInt($("g-in").value);
+    if (isNaN(guess)) { $("g-out").textContent = "Please enter a number."; return; }
+    guesses++;
+    let line;
+    if (guess === secret) {
+      line = "Correct! You got it in " + guesses + " guesses."; over = true;
+    } else {
+      const msg = guess > secret ? "Too high!" : "Too low!";
+      if (guesses >= 5) { line = msg + " Out of guesses! The number was " + secret + "."; over = true; }
+      else line = msg + " (Guess " + guesses + " of 5)";
+    }
+    $("g-out").textContent = line;
+    $("g-log").innerHTML += `#${guesses}: ${guess} → ${esc(line)}<br>`;
+    if (over) { $("g-in").disabled = true; $("g-btn").disabled = true; }
+    $("g-in").value = "";
+  });
+  $("g-in").addEventListener("keydown", e => { if (e.key === "Enter") $("g-btn").click(); });
+  $("g-new").addEventListener("click", () => newGame());
+  $("g-37").addEventListener("click", () => newGame(37));
+  newGame();
+
+  // password
+  let pwAttempts = 0, pwStrong = false;
+  $("pw-btn").addEventListener("click", function () {
+    const pw = $("pw-in").value; pwAttempts++;
+    let score = 0, parts = [];
+    if (pw.length >= 6) { const l = Math.floor((pw.length - 6) / 2) * 10; score += l; parts.push("length " + l); }
+    else parts.push("length 0 (<6)");
+    if (/[A-Z]/.test(pw)) { score += 15; parts.push("upper 15"); }
+    if (/[a-z]/.test(pw)) { score += 15; parts.push("lower 15"); }
+    if (/[0-9]/.test(pw)) { score += 20; parts.push("digit 20"); }
+    if (/[!@#$%^&*]/.test(pw)) { score += 25; parts.push("special 25"); }
+    let level = score <= 30 ? "Very Weak" : score <= 50 ? "Weak" : score <= 70 ? "Medium" : score <= 90 ? "Strong" : "Very Strong";
+    if (score > 70) pwStrong = true;
+    let msg = `Score: ${score}<br>Strength: ${level}<br>Attempts: ${pwAttempts}`;
+    if (score >= 100) msg = `Perfect Password! Score: ${score}<br>Success: your password is excellent.`;
+    if (pw.length < 6) msg += "<br>(Minimum 6 characters required)";
+    if (pwAttempts > 8 && !pwStrong) msg += "<br><b>Need practice!</b> Tips: use 10+ characters, mix UPPER and lower case, add numbers and !@#$%^&*";
+    $("pw-out").innerHTML = msg + `<div class="log">${esc(parts.join(" + "))} = ${score}</div>`;
+  });
+  $("pw-reset").addEventListener("click", () => { pwAttempts = 0; pwStrong = false; $("pw-out").textContent = "Score: 0"; });
+
+  // calorie
+  let calTotal = 0, calCount = 0;
+  function addCal(v) {
+    if (isNaN(v) || v <= 0) return;
+    calTotal += v; calCount++;
+    let msg = calTotal <= 800 ? "You're off to a healthy start!" : calTotal <= 1600 ? "Good progress, keep it balanced!" :
+      calTotal <= 1999 ? "Almost at your limit!" : "Goal reached! Stay mindful!";
+    if (calCount > 10 && calTotal < 2000) msg = "Be cautious of frequent snacking!";
+    $("cal-out").innerHTML = `Total Calories: ${calTotal} / 2000<br>Entries: ${calCount}<br>Feedback: ${msg}`;
+  }
+  function calReset() { calTotal = 0; calCount = 0; $("cal-out").textContent = "Total: 0 | Feedback: Waiting for input..."; }
+  $("cal-btn").addEventListener("click", () => { addCal(parseInt($("cal-in").value)); });
+  $("cal-12").addEventListener("click", () => { calReset(); for (let i = 0; i < 12; i++) addCal(125); });
+  $("cal-reset").addEventListener("click", calReset);
+
+  // study tracker
+  let stTotal = 0, stSubjects = [], stSessions = 0;
+  function addStudy(s, h) {
+    if (s === "" || isNaN(h)) return;
+    stTotal += h; stSubjects.push(s); stSessions++;
+    const avg = stTotal / stSessions;
+    let fb = stTotal <= 5 ? "Start studying regularly!" : stTotal <= 12 ? "Good progress!" : stTotal <= 19 ? "Almost ready!" : "Weekly goal reached!";
+    if (stSessions > 7 && stTotal < 20) fb = "Increase your study time!";
+    $("st-out").innerHTML = `Total: ${stTotal} hours<br>Average: ${avg} hours<br>Subjects: [${esc(stSubjects.join(", "))}]<br>Feedback: ${fb}`;
+  }
+  function stReset() { stTotal = 0; stSubjects = []; stSessions = 0; $("st-out").textContent = "No sessions yet."; }
+  $("st-btn").addEventListener("click", () => { if ($("st-h").value === "") return; addStudy($("st-s").value.trim(), Number($("st-h").value)); });
+  $("st-s1").addEventListener("click", () => { stReset(); [["English", 2], ["English", 3], ["Bangla", 4], ["Physics", 5]].forEach(p => addStudy(...p)); });
+  $("st-s2").addEventListener("click", () => { stReset(); [["Math", 5], ["Physics", 6], ["Chemistry", 7], ["English", 3]].forEach(p => addStudy(...p)); });
+  $("st-s3").addEventListener("click", () => { stReset(); [2, 2, 2, 2, 2, 2, 2, 1].forEach((h, i) => addStudy("S" + (i + 1), h)); });
+  $("st-reset").addEventListener("click", stReset);
+
+  // vitals
+  let hrs = [], sps = [];
+  function addVital(hr, sp) {
+    if (isNaN(hr) || isNaN(sp)) return;
+    hrs.push(hr); sps.push(sp);
+    const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+    const risk = (100 - sp) * 2 + Math.abs(hr - 80) * 0.5;
+    const fb = risk <= 10 ? "SAFE" : risk <= 20 ? "WARNING" : "DANGER";
+    $("vt-out").innerHTML = `Reading #${hrs.length}<br>Average Heart Rate: ${r2(avg(hrs))}<br>Average Oxygen Saturation: ${r2(avg(sps))}<br>Risk Score: ${r2(risk)}<br>Feedback: <b>${fb}</b>`;
+  }
+  function vtReset() { hrs = []; sps = []; $("vt-out").textContent = "No readings yet."; }
+  $("vt-btn").addEventListener("click", () => { if ($("vt-hr").value === "" || $("vt-sp").value === "") return; addVital(Number($("vt-hr").value), Number($("vt-sp").value)); });
+  $("vt-sample").addEventListener("click", () => {
+    vtReset(); const lines = [];
+    [[80, 97], [78, 95], [130, 80]].forEach(([h, s]) => { addVital(h, s); lines.push($("vt-out").innerHTML); });
+    $("vt-out").innerHTML = lines.join('<hr style="border:0;border-top:1px solid var(--line);margin:8px 0">');
+  });
+  $("vt-reset").addEventListener("click", vtReset);
+
+  // budget planner
+  let earnI = [], earnT = 0, expI = [], expT = 0;
+  function bpShow() {
+    $("bp-out").innerHTML = `earning items: ${esc(earnI.join(", "))}<br>total earning: ${earnT}<br>` +
+      `expense items: ${esc(expI.join(", "))}<br>total expense: ${expT}<br><b>balance: ${earnT - expT}</b>`;
+  }
+  $("bp-earn").addEventListener("click", () => { earnI.push($("bp-n").value); earnT += Number($("bp-p").value); bpShow(); });
+  $("bp-exp").addEventListener("click", () => { expI.push($("bp-n").value); expT += Number($("bp-p").value); bpShow(); });
+
+  /* ---------- PHP simulators (live as you type) ---------- */
+  const sims = {
+    pizza: ["pz", (a, b, c) => {
+      const need = a * b, p = Math.ceil(need / c), left = p * c - need, w = left * (1050 / c);
+      return `Total Pizzas: ${p}<br>Leftover Slices: ${left}<br>Wasted Money (BDT): ${r2(w)}` +
+        `<div class="log">ceil(${need} / ${c}) = ceil(${r2(need / c)}) = ${p} · ${left} × (1050 / ${c})</div>`;
+    }],
+    venue: ["vn", (a, b, c) => {
+      const v = Math.ceil(a / c), e = v * c - a;
+      return `Total Venues: ${v}<br>Empty Seats: ${e}<br>Wasted Money (BDT): ${fmt(e * b)}`;
+    }],
+    movie: ["mv", (a, b, c) => {
+      const s = Math.ceil(a / b), e = s * b - a;
+      return `Total Screens: ${s}<br>Empty Seats: ${e}<br>Wasted Money: ${fmt(e * c)} BDT`;
+    }],
+    sales: ["sl", (a, b, t) => {
+      const tot = a * b, perf = tot >= 500 ? "Excellent" : tot >= 300 ? "Good" : tot >= 150 ? "Average" : "Poor", d = tot - t;
+      const res = d > 0 ? `Above target by ${d} items` : d < 0 ? `Below target by ${Math.abs(d)} items` : "Target met exactly (0 difference)";
+      return `Total Items Sold: ${tot}<br>Performance: ${perf}<br>Target: ${t}<br>Result: ${res}`;
+    }],
+    credits: ["cr", (a, b, t) => {
+      const tot = a * b, p = tot >= 120 ? "Excellent" : tot >= 90 ? "Good" : tot >= 60 ? "Average" : "Poor", d = tot - t;
+      const res = d > 0 ? `Above target by ${d}` : d < 0 ? `Below target by ${Math.abs(d)}` : "Target met exactly (0 difference)";
+      return `Total Credits: ${tot} · Progress: ${p} · Target: ${t}<br>Result: ${res}`;
+    }],
+    rover: ["rv", (d, e, c) => {
+      const req = d * e, m = Math.ceil(req / c), car = m * c, un = car - req, pct = car ? un / car * 100 : 0;
+      const st = pct <= 10 ? "Efficient" : pct <= 25 ? "Acceptable" : "Wasteful";
+      return `Total Energy Required: ${req}<br>Battery Modules: ${m}<br>Unused Energy: ${un}<br>Status: ${st}` +
+        `<div class="log">unused ÷ carried = ${un} ÷ ${car} = ${r2(pct)}%</div>`;
+    }]
+  };
+  Object.values(sims).forEach(([p, fn]) => {
+    const ins = ["a", "b", "c"].map(k => $(p + "-" + k));
+    const run = () => {
+      const v = ins.map(i => parseInt(i.value));
+      $(p + "-out").innerHTML = v.some(isNaN) || v[2] === 0 ? "Fill all three numbers." : fn(...v);
+    };
+    ins.forEach(i => i.addEventListener("input", run)); run();
+  });
+  // CT marks sim (5 inputs)
+  function ctRun() {
+    const v = ["ct-1", "ct-2", "ct-3", "ct-m", "ct-f"].map(id => parseInt($(id).value));
+    if (v.some(isNaN)) { $("ct-out").textContent = "Fill all five numbers."; return; }
+    const [a, b, c, m, f] = v, best = a + b + c - Math.min(a, b, c), useAvg = $("ct-avg").checked;
+    const ctPart = useAvg ? best / 2 : best, tot = ctPart + m + f;
+    $("ct-out").innerHTML = `Best two CT's ${useAvg ? "average" : "total"}: ${ctPart}<br>Midterm marks: ${m}<br>Final marks: ${f}<br><br><b>Total Marks = ${tot}</b><br>Status: ${tot > 54 ? "Passed" : "Failed"}`;
+  }
+  ["ct-1", "ct-2", "ct-3", "ct-m", "ct-f", "ct-avg"].forEach(id => $(id).addEventListener("input", ctRun)); ctRun();
+
+  /* =================== QUIZ =================== */
+  const Q = [
+    { t: "JS", q: "The user types 5 into a number input. What does this log?", code: 'let total = 10;\ntotal = total + document.getElementById("n").value;\nconsole.log(total);', o: ["15", '"105"', "NaN", "Error"], a: 1, w: ".value is always a string, so + joins text: 10 + \"5\" = \"105\". Use Number(...) first." },
+    { t: "JS", q: "Why does the attempt counter never go above 1?", code: 'btn.addEventListener("click", function () {\n    let attempts = 0;\n    attempts++;\n    out.innerText = attempts;\n});', o: ["++ doesn't work on let", "attempts is declared inside the function, so it resets every click", "innerText can't show numbers", "The listener only runs once"], a: 1, w: "Move `let attempts = 0;` above the listener (global scope) so it keeps its value between clicks." },
+    { t: "JS", q: "Your script is linked in <head> and the console says “Cannot read properties of null (reading 'addEventListener')”. Best fix?", o: ["Use var instead of let", "Move <script src=\"script.js\"> to just before </body>", "Wrap the button in a <form>", "Rename the id"], a: 1, w: "The script ran before the button existed. Linking at the bottom of body is the lecture's rule." },
+    { t: "JS", q: "Which gives a whole random number from 500 to 5000, both included?", o: ["Math.random() * 5000 + 500", "Math.floor(Math.random() * 4500) + 500", "Math.floor(Math.random() * (5000 - 500 + 1)) + 500", "Math.ceil(Math.random() * 5000)"], a: 2, w: "count = max − min + 1 = 4501 possible values; floor gives 0..4500, then +500." },
+    { t: "JS", q: "Which outputs “Total: 14<br>Avg: 3.5” with a real line break?", o: ['out.innerText = `Total: ${t}<br>Avg: ${a}`', 'out.innerHTML = `Total: ${t}<br>Avg: ${a}`', 'out.value = "Total: " + t', 'console.log(`Total: ${t}`)'], a: 1, w: "innerHTML parses <br> as a tag. innerText would print the characters <br>." },
+    { t: "JS", q: "What does /[0-9]/.test(\"Strong@Pass\") return?", o: ["true", "false", "0", "\"Strong@Pass\""], a: 1, w: "There's no digit in the string. .test() returns a boolean." },
+    { t: "JS", q: "heartRates = [80, 78, 130]. Which line gives the average?", o: ["heartRates.length / 3", "heartRates.reduce((a, b) => a + b, 0) / heartRates.length", "Math.max(...heartRates) / 2", "heartRates.map(x => x / 3)"], a: 1, w: "reduce adds everything (288), then divide by the count (3) → 96." },
+    { t: "JS", q: "In the JS question, why must you NOT wrap the inputs and button in <form>?", o: ["Forms are deprecated", "Clicking the button submits the form and reloads the page, wiping all JS variables", "getElementById can't find elements inside forms", "Forms only work with PHP files that exist"], a: 1, w: "A button inside a form defaults to type=\"submit\", which reloads the page." },
+    { t: "PHP", q: "What does this print?", code: '<?php\n$a = 5;\necho \'Total: $a\';\n?>', o: ["Total: 5", "Total: $a", "Total: ", "Syntax error"], a: 1, w: "Single quotes don't interpolate variables. Use \"Total: $a\" or 'Total: ' . $a." },
+    { t: "PHP", q: "Which line joins two strings in PHP?", o: ['$s = "Hello " + $name;', '$s = "Hello " . $name;', '$s = "Hello ", $name;', '$s = concat("Hello ", $name);'], a: 1, w: "The dot (.) operator concatenates in PHP. + tries numeric addition." },
+    { t: "PHP", q: "The form has <input name=\"slices_per_pizza\">. Which reads it?", o: ['$_POST["slicesPerPizza"]', '$_POST["slices_per_pizza"]', '$_GET("slices_per_pizza")', 'document.getElementById("slices_per_pizza")'], a: 1, w: "PHP uses the name attribute exactly (case-sensitive) as the key in $_POST (method=\"post\")." },
+    { t: "PHP", q: "250 attendees, venue capacity 80. Minimum venues?", code: "$venues = ???($attendees / $capacity);", o: ["round → 3", "floor → 3", "ceil → 4", "intdiv → 3"], a: 2, w: "250/80 = 3.125. You can't book a partial venue, so round UP with ceil() → 4." },
+    { t: "PHP", q: "Pizza: 10 students × 3 slices, 8 slices per pizza at 1050 BDT. Wasted money?", o: ["2100", "262.5", "1050", "131.25"], a: 1, w: "4 pizzas = 32 slices, 2 left. One slice = 1050/8 = 131.25 → 2 × 131.25 = 262.5." },
+    { t: "PHP", q: "Best two of three CTs (12, 15, 14) in one line?", o: ["max($a,$b,$c) * 2", "($a + $b + $c) - min($a, $b, $c)", "sort($a,$b,$c)", "($a + $b + $c) / 2"], a: 1, w: "Removing the smallest leaves the two largest: 41 − 12 = 29." },
+    { t: "PHP", q: "Total 105, target 100. Which branch prints?", code: '$d = $total - $target;\nif ($d > 0) echo "Above by $d";\nelseif ($d < 0) echo "Below by " . abs($d);\nelse echo "Exactly at target";', o: ["Above by 5", "Below by 5", "Exactly at target", "Above by -5"], a: 0, w: "105 − 100 = 5 > 0." },
+    { t: "PHP", q: "Total = 400, rules: Excellent ≥ 500, Good ≥ 300. Which chain is correct?", o: ["if (>=150) Average elseif (>=300) Good elseif (>=500) Excellent", "if (>=500) Excellent elseif (>=300) Good elseif (>=150) Average else Poor", "if (<500) Good else Excellent", "if (>=300) Good elseif (>=500) Excellent"], a: 1, w: "Check from the highest threshold down. The ascending chain would stop at “Average” for 400." },
+    { t: "SQL", q: "“Show the number of employees in each department” →", o: ["SELECT DepartmentName, COUNT(*) FROM t", "SELECT DepartmentName, COUNT(*) AS N FROM t GROUP BY DepartmentName", "SELECT COUNT(DepartmentName) FROM t", "SELECT DISTINCT DepartmentName FROM t"], a: 1, w: "“each” means GROUP BY; COUNT(*) counts rows per group." },
+    { t: "SQL", q: "Keep only statuses that have more than 1 row:", o: ["WHERE COUNT(*) > 1", "HAVING COUNT(*) > 1 (after GROUP BY)", "ORDER BY COUNT(*) > 1", "LIMIT 1"], a: 1, w: "WHERE can't use aggregates. HAVING filters groups after GROUP BY." },
+    { t: "SQL", q: "“Add 5 bonus points if grade > 80, but only if the result is ≤ 90.”", o: ["UPDATE t SET Grade = Grade + 5 WHERE Grade > 80", "UPDATE t SET Grade = Grade + 5 WHERE Grade > 80 AND Grade + 5 <= 90", "UPDATE t SET Grade = 90 WHERE Grade > 80", "UPDATE t SET Grade + 5 WHERE Grade <= 90"], a: 1, w: "“only if the result” means a second condition on the new value." },
+    { t: "SQL", q: "Increase PenaltyFee by 10%:", o: ["SET PenaltyFee = PenaltyFee + 10", "SET PenaltyFee = PenaltyFee * 0.10", "SET PenaltyFee = PenaltyFee * 1.10", "SET PenaltyFee = 10%"], a: 2, w: "×1.10 keeps 100% and adds 10%. ×0.10 would leave only 10%. A 10% cut is ×0.90." },
+    { t: "SQL", q: "Change Status to 'Grace Period' AND fee to 0 in one query:", o: ["SET Status = 'Grace Period' AND PenaltyFee = 0", "SET Status = 'Grace Period', PenaltyFee = 0", "SET (Status, PenaltyFee) = 'Grace Period', 0", "Two separate WHERE clauses"], a: 1, w: "Separate column assignments with commas. Writing AND here would turn it into a boolean expression!" },
+    { t: "SQL", q: "Rating 4.5 is in the data. Is it included by WHERE Rating BETWEEN 4.0 AND 4.5?", o: ["Yes, BETWEEN is inclusive", "No, BETWEEN excludes the ends", "Only if you add EQUAL", "Only for INT columns"], a: 0, w: "BETWEEN a AND b means >= a AND <= b." },
+    { t: "SQL", q: "Find spots whose name contains “Beach”:", o: ["WHERE SpotName = 'Beach'", "WHERE SpotName LIKE 'Beach'", "WHERE SpotName LIKE '%Beach%'", "WHERE SpotName CONTAINS 'Beach'"], a: 2, w: "% matches any characters before and after." },
+    { t: "SQL", q: "SQL: COUNT(*) AS Total. Which PHP reads it?", o: ['$row["COUNT"]', '$row["Total"]', '$row[Total]', '$result["Total"]'], a: 1, w: "fetch_assoc() keys are the result column names, i.e. your alias." },
+    { t: "SQL", q: "Your SELECT has a typo. What happens at $result->fetch_assoc()?", o: ["It returns an empty array", "Fatal error: call to a member function fetch_assoc() on bool", "It silently prints nothing and that's fine", "MySQL fixes the typo"], a: 1, w: "query() returns false on error. Echo $conn->error to see the real problem." },
+    { t: "SQL", q: "Which three SQL statements does the walkthrough say you can write OUTSIDE PHP (txt / phpMyAdmin)?", o: ["SELECT, UPDATE, DELETE", "CREATE DATABASE, CREATE TABLE, INSERT", "UPDATE, INSERT, GROUP BY", "Only SELECT"], a: 1, w: "Database creation, table creation and data insertion. SELECT and UPDATE belong in PHP." }
+  ];
+  const answers = {};
+  function renderQuiz() {
+    const list = $("quizList"); list.innerHTML = "";
+    Q.forEach((it, i) => {
+      const div = document.createElement("div"); div.className = "quiz-q";
+      const chip = it.t === "JS" ? "js" : it.t === "PHP" ? "php" : "sql";
+      div.innerHTML = `<div class="qq"><span class="chip ${chip}">${it.t}</span> ${i + 1}. ${esc(it.q)}</div>` +
+        (it.code ? `<pre>${esc(it.code)}</pre>` : "") +
+        `<div class="opts">${it.o.map((o, j) => `<button class="opt" type="button" data-j="${j}">${esc(o)}</button>`).join("")}</div><div class="why" hidden></div>`;
+      div.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+        if (answers[i] !== undefined) return;
+        const j = +b.dataset.j; answers[i] = j;
+        div.querySelectorAll(".opt").forEach((x, k) => { if (k === it.a) x.classList.add("right"); else if (k === j) x.classList.add("wrong"); });
+        const why = div.querySelector(".why"); why.hidden = false;
+        why.innerHTML = (j === it.a ? "<b style='color:var(--ok)'>Correct.</b> " : "<b style='color:var(--warn)'>Not quite.</b> ") + esc(it.w);
+        score();
+      }));
+      list.appendChild(div);
+    });
+  }
+  function score() {
+    const done = Object.keys(answers).length, right = Object.entries(answers).filter(([i, j]) => Q[i].a === j).length;
+    $("quizScore").textContent = `${right} correct · ${done} / ${Q.length} answered`;
+  }
+  $("quizReset").addEventListener("click", () => { Object.keys(answers).forEach(k => delete answers[k]); renderQuiz(); score(); });
+  renderQuiz(); score();
+})();
+</script>

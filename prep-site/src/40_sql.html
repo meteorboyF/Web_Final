@@ -1,0 +1,362 @@
+<!-- =============================== SQL =============================== -->
+<section class="unit" id="sql-basics" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span> Question 3 · 10 marks</div><h2>Databases, tables and rows</h2></div></div>
+  <p>A <b>database</b> holds <b>tables</b>. A table is a grid: each <b>column</b> has a name and a type, and each <b>row</b> is one record. The <b>primary key</b> is the column that uniquely identifies a row (an ID).</p>
+@@table student_final — the Fall 2024 table
+StudentID|StudentName|CourseID|CourseTitle|Grade|LetterGrade
+1|Karim Uddin|101|Web Programming|85|B
+2|Rahim Ahmed|101|Web Programming|92|A
+3|Jashim Hossain|102|Project Management|78|C
+@@end
+  <h3>Data types you need</h3>
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Type</th><th>Use for</th><th>Example columns</th></tr></thead><tbody>
+    <tr><td><code>INT</code></td><td>Whole numbers</td><td>IDs, Grade, Quantity, Stock, Salary, VisitorsPerYear</td></tr>
+    <tr><td><code>VARCHAR(n)</code></td><td>Text up to n characters</td><td>Names, titles, categories, status</td></tr>
+    <tr><td><code>DECIMAL(m,d)</code></td><td>Exact decimals: m digits total, d after the point</td><td>PenaltyFee <code>DECIMAL(10,2)</code>, Rating <code>DECIMAL(2,1)</code>, Price</td></tr>
+    <tr><td><code>FLOAT</code> / <code>DOUBLE</code></td><td>Approximate decimals</td><td>Works, but <code>DECIMAL</code> avoids rounding surprises</td></tr>
+    <tr><td><code>DATE</code></td><td>'2026-10-11'</td><td>Not in past papers yet</td></tr>
+  </tbody></table></div>
+  <div class="note tip"><b class="k">Choose the type from the data</b><p>If the question’s table shows <code>24.00</code> or <code>4.5</code>, use <code>DECIMAL</code>. If a later part multiplies by 1.10 (a 10% raise), an <code>INT</code> column rounds the result to a whole number. <code>DECIMAL(10,2)</code> keeps the cents.</p></div>
+
+  <h3>CREATE and INSERT (write these in a .txt / phpMyAdmin)</h3>
+@@code sql queries.txt
+CREATE DATABASE uiuweb_final;
+USE uiuweb_final;
+
+CREATE TABLE student_final (
+    StudentID   INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    CourseID    INT,
+    CourseTitle VARCHAR(100),
+    Grade       INT,
+    LetterGrade VARCHAR(2)
+);
+
+INSERT INTO student_final (StudentID, StudentName, CourseID, CourseTitle, Grade, LetterGrade)
+VALUES
+(1, 'Karim Uddin',    101, 'Web Programming',            85, 'B'),
+(2, 'Rahim Ahmed',    101, 'Web Programming',            92, 'A'),
+(3, 'Jashim Hossain', 102, 'Project Management',         78, 'C'),
+(4, 'Jasica Ahmed',   101, 'Web Programming',            65, 'D'),
+(5, 'Faria Karim',    102, 'Project Management',         95, 'A'),
+(6, 'Niassoh Dihan',  103, 'System Analysis and Design', 80, 'B');
+@@end
+  <ul>
+    <li>Text values go in <b>single quotes</b>: <code>'Karim Uddin'</code>. Numbers don’t.</li>
+    <li>Commas between columns and between rows; no comma after the last one; <code>;</code> at the end.</li>
+    <li>A name with an apostrophe needs it doubled: <code>'Cox''s Bazar Beach'</code>.</li>
+    <li>You can skip the column list if you give a value for every column in order.</li>
+  </ul>
+  <h4>Extras you may see</h4>
+@@code sql
+CREATE TABLE items (
+    id    INT AUTO_INCREMENT PRIMARY KEY,   -- MySQL fills 1, 2, 3... for you
+    name  VARCHAR(100),
+    stock INT DEFAULT 0                     -- used when no value is given
+);
+INSERT INTO items (name, stock) VALUES ('abc', 10);   -- id is filled automatically
+
+DROP DATABASE shop;          -- delete a whole database (start over)
+DROP TABLE items;            -- delete a table
+DELETE FROM items WHERE id = 3;   -- delete rows
+@@end
+  <div class="note"><b class="k">phpMyAdmin workflow (from the sessions)</b><p>Go to <code>localhost/phpmyadmin</code>, click <b>New</b> (or use the SQL tab), paste the CREATE/INSERT text, and press <b>Go</b>. Use the <b>Browse</b> tab to check rows after each PHP run. Red markers while you type are normal; they go away once the statement is complete.</p></div>
+</section>
+
+<section class="unit" id="sql-select" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span></div><h2>SELECT, WHERE, ORDER BY</h2></div></div>
+@@code sql
+SELECT * FROM student_final;                         -- every column, every row
+SELECT StudentName, Grade FROM student_final;        -- chosen columns
+SELECT * FROM student_final WHERE Grade > 80;        -- only matching rows
+SELECT StudentName AS Name FROM student_final;       -- AS renames a column in the output
+SELECT BookTitle, Price * Stock AS Worth FROM book_info;   -- computed column
+SELECT DISTINCT CourseTitle FROM student_final;      -- remove duplicates
+@@end
+  <h3>WHERE conditions</h3>
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Condition</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code>= != &lt;&gt; &lt; &gt; &lt;= &gt;=</code></td><td>Compare (<code>=</code> is equality, not assignment; <code>!=</code> and <code>&lt;&gt;</code> both mean “not equal”)</td></tr>
+    <tr><td><code>A AND B</code>, <code>A OR B</code>, <code>NOT A</code></td><td>Combine. Use brackets when mixing: <code>(A OR B) AND C</code></td></tr>
+    <tr><td><code>Rating BETWEEN 4.0 AND 4.5</code></td><td>Inclusive on both ends (same as <code>&gt;= 4.0 AND &lt;= 4.5</code>)</td></tr>
+    <tr><td><code>Category IN ('Beach','Nature')</code></td><td>Equals any value in the list</td></tr>
+    <tr><td><code>SpotName LIKE '%Beach%'</code></td><td>Contains “Beach”. <code>%</code> = any characters. <code>'B%'</code> starts with B, <code>'%h'</code> ends with h</td></tr>
+    <tr><td><code>Email IS NULL</code></td><td>Empty value (never <code>= NULL</code>)</td></tr>
+  </tbody></table></div>
+  <h3>ORDER BY and LIMIT</h3>
+@@code sql
+SELECT * FROM book_info WHERE Category = 'Programming' ORDER BY Price DESC;  -- highest first
+SELECT * FROM tourist_spot ORDER BY Rating DESC, SpotName ASC;            -- tie-breaker
+SELECT * FROM sales_data ORDER BY Revenue DESC LIMIT 3;                   -- top 3
+@@end
+  <p><code>ASC</code> (smallest first) is the default. Words like “most first”, “largest first”, “highest at the top”, “descending” all mean <code>DESC</code>.</p>
+  <div class="note"><b class="k">Clause order (the instructor’s comment from the prep session)</b>
+@@code sql
+SELECT   columns | aggregation (SUM, AVG, COUNT)
+FROM     table_name
+WHERE    condition on individual rows (no aggregation)
+GROUP BY column(s) — "for each ..."
+HAVING   condition on aggregation
+ORDER BY column DESC | ASC
+LIMIT    n — top n results
+@@end
+  <p>You must write them in this order. Swapping, say, ORDER BY before GROUP BY is a syntax error.</p></div>
+</section>
+
+<section class="unit" id="sql-aggregate" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span> · in every paper</div><h2>Aggregates, GROUP BY and HAVING</h2></div></div>
+  <p>An <b>aggregate</b> squeezes many rows into one number. On its own it summarises the whole table:</p>
+@@code sql
+SELECT COUNT(*) FROM book_info;                  -- how many rows: 6
+SELECT SUM(Price * Stock) AS NetWorth FROM book_info;  -- 23650
+SELECT AVG(Grade), MIN(Grade), MAX(Grade) FROM student_final;
+SELECT ROUND(AVG(Rating), 2) FROM tourist_spot;  -- ROUND(x, 2) for tidy output
+@@end
+  <h3>GROUP BY = “for each …”</h3>
+  <p>When the question says <em>“for each course”</em>, <em>“per category”</em>, <em>“number of students who received each grade”</em>, you GROUP BY that column. MySQL splits the rows into piles with the same value and runs the aggregate on each pile.</p>
+@@code sql
+SELECT LetterGrade, COUNT(*) AS Total
+FROM student_final
+GROUP BY LetterGrade;
+@@end
+  <div class="grid">
+    <div>
+@@table rows before grouping | hl=2,5
+LetterGrade|Grade
+B|85
+A|92
+C|78
+D|65
+A|95
+B|80
+@@end
+</div>
+    <div>
+@@table after GROUP BY LetterGrade
+LetterGrade|Total
+A|2
+B|2
+C|1
+D|1
+@@end
+</div>
+  </div>
+  <div class="note warn"><b class="k">The GROUP BY rule</b><p>Every column in SELECT must be either the grouped column or inside an aggregate. <code>SELECT StudentName, COUNT(*) … GROUP BY LetterGrade</code> is wrong: which of the two A-students’ names would it show?</p></div>
+  <h3>HAVING filters the groups</h3>
+@@code sql
+SELECT Status, COUNT(*) AS Total
+FROM book_loans
+GROUP BY Status
+HAVING COUNT(*) > 1;            -- drop groups with only one row
+@@end
+  <div class="vs">
+    <div><h5>WHERE</h5><p>Filters <b>rows</b> before grouping. No aggregates allowed.</p><p><code>WHERE Category = 'Programming'</code></p></div>
+    <div><h5>HAVING</h5><p>Filters <b>groups</b> after grouping. Works with aggregates.</p><p><code>HAVING AVG(Rating) &gt; 4.4</code></p></div>
+  </div>
+  <p>You can use both at once, and sort the groups:</p>
+@@code sql
+SELECT Category, COUNT(*) AS NumSpots, AVG(Rating) AS AvgRating, SUM(VisitorsPerYear) AS TotalVisitors
+FROM tourist_spot
+WHERE EntryFee > 0                  -- 1. keep rows
+GROUP BY Category                   -- 2. make groups
+HAVING AVG(Rating) > 4.4            -- 3. keep groups
+ORDER BY AvgRating DESC;            -- 4. sort (aliases are allowed here)
+@@end
+  <div class="note tip"><b class="k">Group by the name the question asks to display</b><p>“Display the course titles and the number of students” → <code>GROUP BY CourseTitle</code>. If IDs and names always match, grouping by <code>CourseID, CourseTitle</code> gives the same result.</p></div>
+</section>
+
+<section class="unit" id="sql-update" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span> · in every paper</div><h2>UPDATE</h2></div></div>
+@@code sql
+UPDATE table_name
+SET column = new_value
+WHERE condition;
+@@end
+  <div class="note warn"><b class="k">Never forget WHERE</b><p>Without a WHERE clause, <em>every</em> row is changed. (phpMyAdmin may refuse with “safe update mode”; your PHP won’t stop you.)</p></div>
+  <h3>The four UPDATE shapes from past papers</h3>
+@@code sql
+-- 1. Set a fixed value when conditions hold
+UPDATE student_final SET LetterGrade = 'C'
+WHERE Grade < 75 AND LetterGrade != 'D';
+
+-- 2. Arithmetic, with a guard on the RESULT
+UPDATE student_final SET Grade = Grade + 5
+WHERE Grade > 80 AND Grade + 5 <= 90;
+
+-- 3. Percentage change
+UPDATE sales_data SET Revenue = Revenue * 1.10 WHERE Revenue > 70000;   -- +10%
+UPDATE book_info  SET Price   = Price * 0.90   WHERE Category = 'Language'; -- −10%
+
+-- 4. Several columns at once (comma-separated)
+UPDATE book_loans SET Status = 'Grace Period', PenaltyFee = 0
+WHERE Status = 'Overdue' AND DaysOverdue < 7;
+@@end
+  <h3>Watch a guarded UPDATE row by row</h3>
+  <p><code>UPDATE student_final SET Grade = Grade + 5 WHERE Grade &gt; 80 AND Grade + 5 &lt;= 90;</code></p>
+@@table checking each row (verified on MySQL 8) | hl=1
+Name|Grade|Grade > 80?|Grade+5 ≤ 90?|Updated?
+Karim Uddin|85 → *90|yes|90 ✓|yes
+Rahim Ahmed|92|yes|97 ✗|no
+Jashim Hossain|78|no|—|no
+Jasica Ahmed|65|no|—|no
+Faria Karim|95|yes|100 ✗|no
+Niassoh Dihan|80|no (not strictly >)|—|no
+@@end
+  <div class="note tip"><b class="k">“only if the resulting value…”</b><p>That phrase always means a second condition on the <b>new</b> value: <code>Grade + 5 &lt;= 90</code>, <code>Salary + 5000 &lt;= 60000</code>, <code>PenaltyFee * 1.10 &lt;= 50</code>.</p></div>
+  <div class="note"><b class="k">Order matters</b><p>Run the parts in the order given. Each UPDATE changes the data the next query sees. In Spring 2026 Set A, the Heritage category only passes the “average rating &gt; 4.4” test <em>after</em> part 2 raised Paharpur’s rating.</p></div>
+</section>
+
+<section class="unit" id="sql-advanced" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span> · harder parts</div><h2>CASE and subqueries</h2></div></div>
+  <h3>CASE: an if-else inside SQL</h3>
+@@code sql
+SELECT StudentName,
+       CASE
+           WHEN Grade >= 90 THEN 'A'
+           WHEN Grade >= 80 THEN 'B'
+           ELSE 'C'
+       END AS Computed
+FROM student_final;
+@@end
+  <p>You can also do the labelling in PHP instead: fetch the row and use <code>if</code>. Both earn marks; the SQL way is shorter.</p>
+
+  <h3>Subquery: compare with an average</h3>
+@@code sql
+-- Products above the OVERALL average revenue (subquery runs once)
+SELECT ProductName, Revenue
+FROM sales_data
+WHERE Revenue > (SELECT AVG(Revenue) FROM sales_data);
+@@end
+  <h3>Correlated subquery: average of its <em>own</em> group</h3>
+  <p>Summer 2025 asked for “Top Seller” if revenue is above the average of <em>its own category</em>. The inner query is linked to the outer row, so it’s re-run for each product:</p>
+@@code sql
+SELECT ProductName, CategoryName,
+       CASE
+           WHEN Revenue > (SELECT AVG(s2.Revenue)
+                           FROM sales_data s2
+                           WHERE s2.CategoryID = s1.CategoryID)
+           THEN 'Top Seller'
+           ELSE 'Regular Seller'
+       END AS Label
+FROM sales_data s1;
+@@end
+  <p><code>s1</code> and <code>s2</code> are aliases (nicknames) for the same table so the inner query can say “rows whose CategoryID equals <em>this</em> outer row’s CategoryID”.</p>
+  <h4>The same thing with JOIN (alternative)</h4>
+@@code sql
+SELECT s.ProductName, s.CategoryName,
+       CASE WHEN s.Revenue > a.AvgRev THEN 'Top Seller' ELSE 'Regular Seller' END AS Label
+FROM sales_data s
+JOIN (SELECT CategoryID, AVG(Revenue) AS AvgRev
+      FROM sales_data GROUP BY CategoryID) a
+  ON s.CategoryID = a.CategoryID;
+@@end
+  <div class="note"><b class="k">Or do it in PHP (fallback if SQL gets tricky)</b><p>Run one query for averages per category, store them in a PHP array <code>$avg[$row['CategoryID']] = $row['AvgRev']</code>, then loop over all products and compare in PHP. Slower to write, but easy to reason about.</p></div>
+  <div class="note warn"><b class="k">MySQL limitation</b><p>You can’t UPDATE a table using a subquery that reads the <em>same</em> table (<code>Error 1093</code>). If a question needs that, first SELECT the value into PHP, then put it into the UPDATE string.</p></div>
+</section>
+
+<section class="unit" id="sql-php" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip sql">SQL</span> <span class="chip php">PHP</span> · memorise this</div><h2>Running SQL from PHP with mysqli</h2></div></div>
+  <p>The exam’s own “Sample SQL Query” box (Spring 2025 paper) gives this exact shape. The connection code earns marks even if a query is wrong, so always write it.</p>
+@@code php 1 · connect
+<?php
+$servername = "localhost";
+$username   = "root";          // XAMPP default
+$password   = "";              // XAMPP default: empty
+$dbname     = "uiuweb_final";  // the database you created
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+// short form used in the session: $conn = new mysqli("localhost", "root", "", "shop");
+@@end
+@@code php 2 · SELECT — loop through the rows
+$sql = "SELECT LetterGrade, COUNT(*) AS Total
+        FROM student_final
+        GROUP BY LetterGrade";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        echo "Grade " . $row["LetterGrade"] . ": " . $row["Total"] . "<br>";
+    }
+} else {
+    echo "0 results";
+}
+@@end
+  <ul>
+    <li><code>$conn-&gt;query($sql)</code> sends the SQL. For SELECT it returns a <b>result set</b>.</li>
+    <li><code>$result-&gt;num_rows</code> is how many rows came back.</li>
+    <li><code>fetch_assoc()</code> gives the next row as an array keyed by column name, and <code>null</code> when there are no more rows, which ends the <code>while</code>.</li>
+    <li>The key is the column name <b>as it appears in the result</b>. If you wrote <code>COUNT(*) AS Total</code>, use <code>$row["Total"]</code>. Without an alias it would be <code>$row["COUNT(*)"]</code>, so always alias aggregates.</li>
+  </ul>
+@@code php 3 · UPDATE — check it worked
+$sql = "UPDATE student_final SET LetterGrade = 'C'
+        WHERE Grade < 75 AND LetterGrade != 'D'";
+
+if ($conn->query($sql) === TRUE) {
+    echo "Record updated successfully. Rows changed: " . $conn->affected_rows . "<br>";
+} else {
+    echo "Error updating record: " . $conn->error;
+}
+@@end
+@@code php 4 · close
+$conn->close();
+?>
+@@end
+  <div class="note tip"><b class="k">Lesson from the PHP session</b><p>Writing <code>$sql = "INSERT …";</code> does nothing on its own. The query only runs when you call <code>$conn-&gt;query($sql)</code>. The instructor’s table stayed empty until he added that line.</p></div>
+
+  <h3>PHP variables inside SQL strings</h3>
+@@code php
+$name = $_POST["item-name"];      // text
+$count = (int) $_POST["item-count"]; // number
+
+// text values need single quotes INSIDE the SQL; numbers don't
+$sql = "INSERT INTO items (name, stock) VALUES ('$name', $count)";
+$sql = "UPDATE items SET stock = stock - $count WHERE name = '$name' AND stock >= $count";
+@@end
+  <div class="note"><b class="k">Beyond the exam: prepared statements</b><p>Pasting user input straight into SQL allows <em>SQL injection</em>. Real apps use <code>$stmt = $conn-&gt;prepare("… WHERE name = ?"); $stmt-&gt;bind_param("s", $name); $stmt-&gt;execute();</code>. The exam only uses fixed queries, so the simple form is fine there.</p></div>
+
+  <h3>Printing results as an HTML table</h3>
+@@code php
+$result = $conn->query("SELECT ProductName, CategoryName, Revenue FROM sales_data");
+echo "<table border='1'><tr><th>Product</th><th>Category</th><th>Revenue</th></tr>";
+while ($row = $result->fetch_assoc()) {
+    echo "<tr><td>{$row['ProductName']}</td><td>{$row['CategoryName']}</td><td>{$row['Revenue']}</td></tr>";
+}
+echo "</table>";
+@@end
+
+  <h3>A shortcut to save time</h3>
+  <p>Q3 repeats “run a SELECT and print every row” four times. A small helper function prints any result as a table:</p>
+@@code php
+function showTable($conn, $sql) {
+    $result = $conn->query($sql);
+    if (!$result) { echo "Error: " . $conn->error . "<br>"; return; }
+    if ($result->num_rows == 0) { echo "0 results<br>"; return; }
+    echo "<table border='1'>";
+    $first = true;
+    while ($row = $result->fetch_assoc()) {
+        if ($first) {                                  // header from column names
+            echo "<tr>";
+            foreach ($row as $col => $v) echo "<th>$col</th>";
+            echo "</tr>";
+            $first = false;
+        }
+        echo "<tr>";
+        foreach ($row as $v) echo "<td>$v</td>";
+        echo "</tr>";
+    }
+    echo "</table><br>";
+}
+
+showTable($conn, "SELECT LetterGrade, COUNT(*) AS Total FROM student_final GROUP BY LetterGrade");
+@@end
+  <p class="muted" style="font-size:.9rem">Optional. If you’re not comfortable with it, the plain <code>while</code> loop is what the lecture shows and is fully acceptable.</p>
+  <div class="note warn"><b class="k">Error messages decoded</b><ul>
+    <li><b>Unknown database</b>: <code>$dbname</code> is spelled differently from what you created.</li>
+    <li><b>Table doesn’t exist</b>: wrong table name, or the CREATE never ran.</li>
+    <li><b>Unknown column</b>: column name typo, or text not quoted (<code>WHERE Status = Overdue</code> should be <code>'Overdue'</code>).</li>
+    <li><b>Call to a member function fetch_assoc() on bool</b>: the SELECT failed. Print <code>$conn-&gt;error</code> to see why.</li>
+    <li><b>Undefined array key "Total"</b>: the alias in SQL doesn’t match the key in <code>$row[…]</code>.</li>
+  </ul></div>
+</section>

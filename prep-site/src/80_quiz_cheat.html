@@ -1,0 +1,93 @@
+<!-- =============================== QUIZ =============================== -->
+<section class="unit" id="quiz" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Test yourself</div><h2>Quiz: spot the bug, predict the output</h2></div></div>
+  <p>Each question targets a mistake that has cost students marks before. Pick an answer to see the explanation.</p>
+  <div class="score"><span id="quizScore">0 / 0 answered</span><button class="btn" id="quizReset" type="button">Reset quiz</button></div>
+  <div id="quizList"></div>
+</section>
+
+<!-- =============================== CHEATSHEET =============================== -->
+<section class="unit" id="cheat" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Last look before the exam</div><h2>One-page cheatsheet</h2></div></div>
+  <div class="grid">
+    <div class="card"><span class="chip js">JS · Q1</span>
+@@code js
+const GOAL = 20;  let total = 0, n = 0, list = [];
+document.getElementById("btn").addEventListener("click", function () {
+  let v = Number(document.getElementById("inp").value);
+  if (isNaN(v)) return;
+  total += v; n++; list.push(v);
+  let msg = total <= 5 ? "A" : total <= 12 ? "B" : "C";
+  if (n > 7 && total < GOAL) msg = "Override";
+  document.getElementById("out").innerHTML =
+    `Total: ${total}<br>Avg: ${total / n}<br>[${list.join(", ")}]<br>${msg}`;
+});
+@@end
+      <p style="font-size:.88rem">No <code>&lt;form&gt;</code>. Script at the bottom of body. Globals outside the function. <code>Math.floor(Math.random()*(max-min+1))+min</code>. <code>/[A-Z]/.test(s)</code>. <code>Math.abs()</code>.</p>
+    </div>
+    <div class="card"><span class="chip php">PHP · Q2</span>
+@@code php
+<form action="p.php" method="post">
+  <input type="number" name="a"> <input type="submit">
+</form>
+<?php
+function solve($a, $b, $c) {
+  $units = ceil($a * $b / $c);        // round UP
+  $left  = $units * $c - $a * $b;
+  if ($x >= 500) $cat = "Excellent";
+  elseif ($x >= 300) $cat = "Good";
+  else $cat = "Poor";
+  $d = $x - $target;                  // abs($d) for "below by"
+  echo "Units: $units<br>Left: " . number_format($left);
+}
+solve((int)$_POST["a"], (int)$_POST["b"], (int)$_POST["c"]);
+?>
+@@end
+      <p style="font-size:.88rem"><code>$</code> on every variable. <code>.</code> joins strings. <code>name</code> ↔ <code>$_POST["name"]</code>. Best 2 of 3 = sum − <code>min()</code>.</p>
+    </div>
+  </div>
+  <div class="card"><span class="chip sql">SQL + PHP · Q3</span>
+@@code php
+<?php
+$conn = new mysqli("localhost", "root", "", "dbname");
+if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+
+$result = $conn->query("SELECT Cat, COUNT(*) AS Total, AVG(x) AS Avg, SUM(a*b) AS Rev
+                        FROM t WHERE ... GROUP BY Cat HAVING COUNT(*) > 1 ORDER BY Total DESC LIMIT 3");
+while ($row = $result->fetch_assoc()) echo $row["Cat"] . ": " . $row["Total"] . "<br>";
+
+if ($conn->query("UPDATE t SET a = a * 1.10, s = 'X' WHERE a > 20 AND a * 1.10 <= 50") === TRUE)
+    echo "Updated " . $conn->affected_rows . "<br>";
+else echo "Error: " . $conn->error;
+
+$conn->close();
+?>
+@@end
+    <div class="grid" style="margin-bottom:0">
+      <div><b>Words → SQL</b><ul style="font-size:.9rem;margin-top:6px">
+        <li>“for each / per X” → <code>GROUP BY X</code></li>
+        <li>“number of” → <code>COUNT(*)</code> · “total” → <code>SUM()</code> · “average” → <code>AVG()</code></li>
+        <li>“only groups with …” → <code>HAVING</code></li>
+        <li>“most / largest first” → <code>ORDER BY … DESC</code></li>
+        <li>“top 3” → <code>LIMIT 3</code></li>
+        <li>“contains X” → <code>LIKE '%X%'</code> · “between a and b (inclusive)” → <code>BETWEEN</code></li>
+        <li>“only if the result …” → extra <code>AND</code> on the new value</li>
+        <li>“label A or B” → <code>CASE WHEN … THEN … ELSE … END</code></li>
+        <li>“above its own group’s average” → correlated subquery</li>
+      </ul></div>
+      <div><b>Before handing in</b><ul style="font-size:.9rem;margin-top:6px">
+        <li>Ran the first sample row through by hand?</li>
+        <li>Every UPDATE has a WHERE?</li>
+        <li>Text in <code>'quotes'</code> inside SQL?</li>
+        <li>Aggregates have an <code>AS</code> alias that matches <code>$row["…"]</code>?</li>
+        <li>Parts run in the order given?</li>
+        <li>CREATE / INSERT written in the txt file?</li>
+        <li>JS ids and PHP names match the HTML exactly?</li>
+      </ul></div>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:28px;font-size:.85rem">Built from the course’s Final Walkthrough, Basic &amp; Intermediate JS sheets, PHP &amp; MySQL lecture and practice notes, the cheatsheet, both recorded sessions, and the six past finals (Fall 2024 to Spring 2026). Every SQL result shown was run on MySQL 8.</p>
+</section>
+
+</div></main>
+</div>

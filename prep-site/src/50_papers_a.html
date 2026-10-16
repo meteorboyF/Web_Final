@@ -1,0 +1,684 @@
+<!-- =============================== PAST PAPERS =============================== -->
+<section class="unit" id="p-f24" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals · solved and verified</div><h2>Fall 2024</h2></div></div>
+  <p class="muted">Number guessing game · Pizza party · Student grades. SQL outputs below were run on MySQL 8. JS demos run the solution code live.</p>
+  <div class="toc-inline"><button class="btn" type="button" data-selftest>Self-test mode: hide all solutions</button></div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">Q1 · JS</span><h4>Number guessing game</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>index.html: a text field for the guess, a submit button, and a label below it for feedback. script.js: generate a random secret between <b>500 and 5000</b>; take the guess; inside a function compare and show <b>“Too high!” / “Too low!”</b>; on a correct guess show <b>“Correct!”</b> and optionally disable the input; count guesses; after <b>5 attempts</b> show <b>“Out of guesses!”</b>.</p><p class="muted">Sample (secret 37): 50, 25, 35, 38, 37 → Too high!, Too low!, Too low!, Too high!, Correct!</p></div>
+      <h4>Approach</h4>
+      <ul><li>Globals: <code>secret</code> (random once, at load) and <code>guesses = 0</code>.</li><li>On click: read and convert, <code>guesses++</code>, then compare.</li><li>Check “correct” <b>first</b>, so a right answer on the 5th try still wins.</li></ul>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<head><title>Number Guessing Game</title></head>
+<body>
+    <h2>Guess the Secret Number (500 - 5000)</h2>
+    <input type="text" id="guessInput" placeholder="Enter your guess">
+    <button id="submitBtn">Submit</button>
+    <br>
+    <label id="feedback">Make your first guess...</label>
+
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+@@code js script.js
+// 1. random secret between 500 and 5000 (inclusive), made once
+let secret = Math.floor(Math.random() * (5000 - 500 + 1)) + 500;
+let guesses = 0;
+const MAX_GUESSES = 5;
+
+function checkGuess() {
+    let input = document.getElementById("guessInput");
+    let label = document.getElementById("feedback");
+    let guess = parseInt(input.value);
+
+    if (isNaN(guess)) {                       // ignore empty / non-numbers
+        label.innerText = "Please enter a number.";
+        return;
+    }
+
+    guesses++;                                // d) track attempts
+
+    if (guess === secret) {                   // c) correct
+        label.innerText = "Correct! You got it in " + guesses + " guesses.";
+        input.disabled = true;
+        document.getElementById("submitBtn").disabled = true;
+        return;
+    }
+
+    let msg = guess > secret ? "Too high!" : "Too low!";   // b)
+
+    if (guesses >= MAX_GUESSES) {             // e) out of guesses
+        label.innerText = msg + " Out of guesses! The number was " + secret + ".";
+        input.disabled = true;
+        document.getElementById("submitBtn").disabled = true;
+    } else {
+        label.innerText = msg + " (Guess " + guesses + " of " + MAX_GUESSES + ")";
+    }
+    input.value = "";
+}
+
+document.getElementById("submitBtn").addEventListener("click", checkGuess);
+@@end
+      </div></details>
+      <div class="demo">
+        <div class="demo-title"><span>Live demo · the code above</span><span><label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="g-peek" style="width:auto"> show secret</label></span></div>
+        <div class="demo-row"><label>Your guess<input id="g-in" type="text" placeholder="500–5000"></label><button class="btn primary" id="g-btn" type="button">Submit</button><button class="btn" id="g-new" type="button">New game</button><button class="btn" id="g-37" type="button">Test with secret = 37</button></div>
+        <div class="out" id="g-out">Make your first guess...</div>
+        <div class="log" id="g-log"></div>
+      </div>
+      <div class="note"><b class="k">Lecture version vs this one</b><p>The Intermediate JS solution checks “out of guesses” <em>before</em> “too high/low”, so on the 5th wrong guess it shows only “Out of guesses!”. The sample table shows a 5th feedback (“Too high!”) <em>and</em> the result “Out of guesses!”, so this version prints both. Either is fine as long as 5 wrong guesses ends the game.</p></div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>Pizza party</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>A PHP function takes students, slices per student and slices per pizza. Calculate the <b>minimum whole pizzas</b>, the <b>leftover slices</b>, and, at <b>1050 BDT per pizza</b>, the money wasted on the leftover slices.</p></div>
+@@table sample
+Students|Slices/Student|Slices/Pizza|Total Pizzas|Leftover|Wasted (BDT)
+10|3|8|4|2|262.5
+7|2|6|3|4|700
+12|2|4|6|0|0
+@@end
+      <h4>Approach: Pattern A</h4>
+      <p>Needed = 10 × 3 = 30 slices. Pizzas = ceil(30 ÷ 8) = ceil(3.75) = <b>4</b>. Got 4 × 8 = 32 slices, so leftover = <b>2</b>. One slice costs 1050 ÷ 8 = 131.25, so wasted = 2 × 131.25 = <b>262.5</b> ✓. The waste is priced <em>per slice</em>, not per pizza.</p>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Pizza Party Calculator</h2>
+    <form action="pizza.php" method="post">
+        Number of Students: <input type="number" name="students"><br><br>
+        Slices per Student: <input type="number" name="slices_per_student"><br><br>
+        Slices per Pizza:   <input type="number" name="slices_per_pizza"><br><br>
+        <input type="submit" value="Calculate">
+    </form>
+</body>
+</html>
+@@end
+@@code php pizza.php
+<?php
+function calculatePizza($students, $slicesPerStudent, $slicesPerPizza) {
+    $pricePerPizza = 1050;
+
+    $slicesNeeded = $students * $slicesPerStudent;          // total demand
+    $totalPizzas  = ceil($slicesNeeded / $slicesPerPizza);  // round UP
+    $slicesGot    = $totalPizzas * $slicesPerPizza;         // supply
+    $leftover     = $slicesGot - $slicesNeeded;
+    $wasted       = $leftover * ($pricePerPizza / $slicesPerPizza);  // per-slice price
+
+    echo "Total Pizzas: $totalPizzas<br>";
+    echo "Leftover Slices: $leftover<br>";
+    echo "Wasted Money (BDT): $wasted<br>";
+}
+
+$students         = (int) $_POST["students"];
+$slicesPerStudent = (int) $_POST["slices_per_student"];
+$slicesPerPizza   = (int) $_POST["slices_per_pizza"];
+
+calculatePizza($students, $slicesPerStudent, $slicesPerPizza);
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="pizza">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Students<input id="pz-a" type="number" value="10"></label><label>Slices/student<input id="pz-b" type="number" value="3"></label><label>Slices/pizza<input id="pz-c" type="number" value="8"></label></div>
+        <div class="out php" id="pz-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>Student grades</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Create <code>uiuweb_final</code> and table <code>student_final</code> (6 rows, see <a href="#sql-basics">the SQL unit</a>). Then:</p><ol><li>Total number of students per letter grade.</li><li>If grade &lt; 75 and letter grade is not ‘D’, set letter grade to ‘C’.</li><li>If grade &gt; 80, add 5 bonus points, only if the result is ≤ 90.</li><li>For each course: title and number of students, most popular first.</li></ol></div>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt — run in phpMyAdmin
+CREATE DATABASE uiuweb_final;
+USE uiuweb_final;
+CREATE TABLE student_final (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(100),
+    CourseID INT,
+    CourseTitle VARCHAR(100),
+    Grade INT,
+    LetterGrade VARCHAR(2)
+);
+INSERT INTO student_final VALUES
+(1, 'Karim Uddin', 101, 'Web Programming', 85, 'B'),
+(2, 'Rahim Ahmed', 101, 'Web Programming', 92, 'A'),
+(3, 'Jashim Hossain', 102, 'Project Management', 78, 'C'),
+(4, 'Jasica Ahmed', 101, 'Web Programming', 65, 'D'),
+(5, 'Faria Karim', 102, 'Project Management', 95, 'A'),
+(6, 'Niassoh Dihan', 103, 'System Analysis and Design', 80, 'B');
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "uiuweb_final");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// 1. students per letter grade
+echo "<h3>1. Students per Letter Grade</h3>";
+$sql = "SELECT LetterGrade, COUNT(*) AS Total
+        FROM student_final
+        GROUP BY LetterGrade";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo "Grade " . $row["LetterGrade"] . ": " . $row["Total"] . " students<br>";
+}
+
+// 2. grade < 75 and not 'D' -> 'C'
+echo "<h3>2. Update Letter Grades</h3>";
+$sql = "UPDATE student_final SET LetterGrade = 'C'
+        WHERE Grade < 75 AND LetterGrade != 'D'";
+if ($conn->query($sql) === TRUE) {
+    echo "Updated. Rows affected: " . $conn->affected_rows . "<br>";
+} else {
+    echo "Error: " . $conn->error;
+}
+
+// 3. +5 bonus when grade > 80, only if result <= 90
+echo "<h3>3. Bonus Points</h3>";
+$sql = "UPDATE student_final SET Grade = Grade + 5
+        WHERE Grade > 80 AND Grade + 5 <= 90";
+if ($conn->query($sql) === TRUE) {
+    echo "Bonus added. Rows affected: " . $conn->affected_rows . "<br>";
+} else {
+    echo "Error: " . $conn->error;
+}
+
+// 4. students per course, most popular first
+echo "<h3>4. Courses by Popularity</h3>";
+$sql = "SELECT CourseTitle, COUNT(*) AS NumStudents
+        FROM student_final
+        GROUP BY CourseTitle
+        ORDER BY NumStudents DESC";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo $row["CourseTitle"] . ": " . $row["NumStudents"] . " students<br>";
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+      <div class="grid">
+<div>
+@@table 1 · per letter grade
+LetterGrade|Total
+A|2
+B|2
+C|1
+D|1
+@@end
+</div>
+<div>
+@@table 4 · per course, DESC
+CourseTitle|NumStudents
+Web Programming|3
+Project Management|2
+System Analysis and Design|1
+@@end
+</div>
+      </div>
+@@table table after parts 2 & 3 | hl=1
+StudentID|StudentName|Grade|LetterGrade
+1|Karim Uddin|*90|B
+2|Rahim Ahmed|92|A
+3|Jashim Hossain|78|C
+4|Jasica Ahmed|65|D
+5|Faria Karim|95|A
+6|Niassoh Dihan|80|B
+@@end
+      <p><b>Part 2 changes 0 rows.</b> Only Jasica has grade &lt; 75, and she is already ‘D’, so <code>!= 'D'</code> excludes her. That’s expected; write the query anyway. <b>Part 3 changes only Karim</b> (85 → 90). Rahim and Faria would go over 90, and Niassoh’s 80 is not &gt; 80.</p>
+    </div>
+  </div>
+</section>
+
+<section class="unit" id="p-s25" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals</div><h2>Spring 2025</h2></div></div>
+  <p class="muted">Password strength · Tech fest venues · Employee performance</p>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">Q1 · JS</span><h4>Password strength checker</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>A password input, a “Check Strength” button and a label. Score: <b>length +10 per 2 characters (minimum 6 required)</b>, uppercase +15, lowercase +15, number +20, special <code>!@#$%^&amp;*</code> +25. Levels: Very Weak 0–30, Weak 31–50, Medium 51–70, Strong 71–90, Very Strong 91+. At 100+, show <b>“Perfect Password!”</b>. Track attempts; after <b>more than 8 attempts without reaching Strong</b>, show <b>“Need practice!”</b> and tips.</p></div>
+@@table sample
+Input|Expected
+abc|Very Weak
+hello123|Weak
+Strong@Pass|Strong
+Perfect@Pass123|Perfect Password!
+@@end
+      <div class="note warn"><b class="k">Read the samples before the rule</b><p>If you give 10 points per 2 characters of the <em>whole</em> length (the lecture solution), <code>hello123</code> scores 40 + 15 + 20 = 75 → <b>Strong</b>, but the sample says <b>Weak</b>. <code>Strong@Pass</code> would score 105 → Perfect, but the sample says Strong.</p><p>Counting only the characters <b>beyond the 6-character minimum</b> matches all four samples:</p>
+@@table checked against the samples
+Password|Len|Length pts floor((len−6)/2)×10|Upper|Lower|Digit|Special|Score|Level
+abc|3|0 (below 6)|—|15|—|—|15|Very Weak ✓
+hello123|8|10|—|15|20|—|45|Weak ✓
+Strong@Pass|11|20|15|15|—|25|75|Strong ✓
+Perfect@Pass123|15|40|15|15|20|25|115|Perfect Password! ✓
+@@end
+      <p>In the exam, write a comment stating your interpretation. Matching the sample output is what gets checked.</p></div>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<head><title>Password Strength</title></head>
+<body>
+    <h2>Password Strength Checker</h2>
+    <input type="password" id="passInput" placeholder="Enter password">
+    <button id="checkBtn">Check Strength</button>
+    <br>
+    <label id="result">Score: 0</label>
+
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+@@code js script.js
+const TARGET = 100;          // "Very Strong"/perfect target
+let attempts = 0;
+let reachedStrong = false;   // has any attempt reached Strong (71+)?
+
+document.getElementById("checkBtn").addEventListener("click", function () {
+    let pw = document.getElementById("passInput").value;
+    let label = document.getElementById("result");
+    attempts++;
+
+    let score = 0;
+    // Length: +10 for every 2 characters beyond the 6-character minimum
+    // (this reading matches every sample row)
+    if (pw.length >= 6) {
+        score += Math.floor((pw.length - 6) / 2) * 10;
+    }
+    if (/[A-Z]/.test(pw)) score += 15;
+    if (/[a-z]/.test(pw)) score += 15;
+    if (/[0-9]/.test(pw)) score += 20;
+    if (/[!@#$%^&*]/.test(pw)) score += 25;
+
+    let level;
+    if (score <= 30) level = "Very Weak";
+    else if (score <= 50) level = "Weak";
+    else if (score <= 70) level = "Medium";
+    else if (score <= 90) level = "Strong";
+    else level = "Very Strong";
+
+    if (score > 70) reachedStrong = true;
+
+    let msg = `Score: ${score}<br>Strength: ${level}<br>Attempts: ${attempts}`;
+
+    if (score >= TARGET) {
+        msg = `Perfect Password! Score: ${score}<br>Success: your password is excellent.`;
+    }
+    if (pw.length < 6) {
+        msg += "<br>(Minimum 6 characters required)";
+    }
+    if (attempts > 8 && !reachedStrong) {
+        msg += "<br><b>Need practice!</b> Tips: use 10+ characters, mix UPPER and lower case, add numbers and !@#$%^&*";
+    }
+
+    label.innerHTML = msg;
+});
+@@end
+      </div></details>
+      <div class="demo">
+        <div class="demo-title"><span>Live demo</span></div>
+        <div class="demo-row"><label>Password<input id="pw-in" type="text" value="hello123"></label><button class="btn primary" id="pw-btn" type="button">Check Strength</button><button class="btn" id="pw-reset" type="button">Reset attempts</button></div>
+        <div class="out" id="pw-out">Score: 0</div>
+        <div class="hint">Shown as plain text here so you can see what you type; the real answer uses <code>type="password"</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>UIU Tech Fest venue booking</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>A PHP function takes attendees, cost per person, and venue capacity. Find the minimum whole venues, the empty seats, and (each venue costs 15,000 BDT) the money wasted on empty seats.</p></div>
+@@table sample
+Attendees|Cost/Person|Capacity|Venues|Empty Seats|Wasted (BDT)
+250|120|80|4|70|8,400
+180|150|100|2|20|3,000
+300|100|75|4|0|0
+@@end
+      <p><b>Decode the waste from the sample:</b> 70 empty × 120 = 8,400 ✓. So wasted = empty seats × <b>cost per person</b>. The 15,000 venue price is never used: 70 × (15000 ÷ 80) = 13,125 ✗.</p>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<form action="venue.php" method="post">
+    Attendees: <input type="number" name="attendees"><br><br>
+    Cost per Person: <input type="number" name="cost_per_person"><br><br>
+    Venue Capacity: <input type="number" name="venue_capacity"><br><br>
+    <input type="submit" value="Calculate">
+</form>
+@@end
+@@code php venue.php
+<?php
+function calculateVenue($attendees, $costPerPerson, $venueCapacity) {
+    $totalVenues = ceil($attendees / $venueCapacity);
+    $totalSeats  = $totalVenues * $venueCapacity;
+    $emptySeats  = $totalSeats - $attendees;
+    $wasted      = $emptySeats * $costPerPerson;
+
+    echo "Total Venues: $totalVenues<br>";
+    echo "Empty Seats: $emptySeats<br>";
+    echo "Wasted Money (BDT): " . number_format($wasted) . "<br>";   // 8,400
+}
+
+calculateVenue((int)$_POST["attendees"], (int)$_POST["cost_per_person"], (int)$_POST["venue_capacity"]);
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="venue">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Attendees<input id="vn-a" type="number" value="250"></label><label>Cost/person<input id="vn-b" type="number" value="120"></label><label>Capacity<input id="vn-c" type="number" value="80"></label></div>
+        <div class="out php" id="vn-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>Employee performance</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Database <code>uiutech_final</code>, table <code>employee_final</code>. 1) employees per rating; 2) salary &lt; 40,000 and rating not ‘D’ → ‘C’; 3) salary &gt; 50,000 → +5,000, only if result ≤ 60,000; 4) employees per department, largest first.</p></div>
+@@table given data
+EmployeeID|EmployeeName|DepartmentID|DepartmentName|Salary|PerformanceRating
+1|Arif Rahman|201|Software Development|45000|B
+2|Marium Khan|201|Software Development|52000|A
+3|Sabbir Hossain|202|Quality Assurance|38000|C
+4|Samira Begum|203|UI/UX Design|42000|B
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt
+CREATE DATABASE uiutech_final;
+USE uiutech_final;
+CREATE TABLE employee_final (
+    EmployeeID INT PRIMARY KEY,
+    EmployeeName VARCHAR(100),
+    DepartmentID INT,
+    DepartmentName VARCHAR(100),
+    Salary INT,
+    PerformanceRating VARCHAR(2)
+);
+INSERT INTO employee_final VALUES
+(1, 'Arif Rahman', 201, 'Software Development', 45000, 'B'),
+(2, 'Marium Khan', 201, 'Software Development', 52000, 'A'),
+(3, 'Sabbir Hossain', 202, 'Quality Assurance', 38000, 'C'),
+(4, 'Samira Begum', 203, 'UI/UX Design', 42000, 'B');
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "uiutech_final");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h3>1. Employees per Rating</h3>";
+$result = $conn->query("SELECT PerformanceRating, COUNT(*) AS Total
+                        FROM employee_final GROUP BY PerformanceRating");
+while ($row = $result->fetch_assoc()) {
+    echo "Rating " . $row["PerformanceRating"] . ": " . $row["Total"] . "<br>";
+}
+
+echo "<h3>2. Update Ratings</h3>";
+$sql = "UPDATE employee_final SET PerformanceRating = 'C'
+        WHERE Salary < 40000 AND PerformanceRating != 'D'";
+if ($conn->query($sql) === TRUE) echo "Ratings updated<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>3. Salary Bonus</h3>";
+$sql = "UPDATE employee_final SET Salary = Salary + 5000
+        WHERE Salary > 50000 AND Salary + 5000 <= 60000";
+if ($conn->query($sql) === TRUE) echo "Bonus applied<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>4. Departments by Size</h3>";
+$result = $conn->query("SELECT DepartmentName, COUNT(*) AS NumEmployees
+                        FROM employee_final
+                        GROUP BY DepartmentName
+                        ORDER BY NumEmployees DESC");
+while ($row = $result->fetch_assoc()) {
+    echo $row["DepartmentName"] . ": " . $row["NumEmployees"] . " employees<br>";
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+      <div class="grid">
+<div>
+@@table 1 · per rating
+PerformanceRating|Total
+A|1
+B|2
+C|1
+@@end
+</div>
+<div>
+@@table 4 · per department, DESC
+DepartmentName|NumEmployees
+Software Development|2
+Quality Assurance|1
+UI/UX Design|1
+@@end
+</div>
+      </div>
+      <ul>
+        <li><b>Part 1:</b> No one has ‘D’, so no D row appears. GROUP BY only shows values that exist.</li>
+        <li><b>Part 2:</b> Sabbir matches (38,000, rating C ≠ D) but is already ‘C’. MySQL says <em>0 rows affected</em> because nothing actually changed. The query is still correct.</li>
+        <li><b>Part 3:</b> Only Marium: 52,000 → <b>57,000</b>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="unit" id="p-su25" data-topic>
+  <div class="unit-head"><div><div class="eyebrow">Past finals</div><h2>Summer 2025</h2></div></div>
+  <p class="muted">Calorie tracker · Movie night screens · Sales data</p>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip js">Q1 · JS</span><h4>Daily calorie tracker</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>A number input for calories per meal, an “Add Calories” button and a label. Goal 2000. Add each entry to a running total; show the total; feedback: 0–800 “You’re off to a healthy start!”, 801–1600 “Good progress, keep it balanced!”, 1601–1999 “Almost at your limit!”, 2000+ “Goal reached! Stay mindful!”. Count entries; <b>more than 10 entries</b> without reaching the goal → “Be cautious of frequent snacking!”.</p><p class="muted">Samples: 300, 500, 700 → Good progress… · 1000, 800, 300 → Goal reached! · 12 entries totalling 1500 → Be cautious of frequent snacking!</p></div>
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<!DOCTYPE html>
+<html>
+<head><title>Calorie Tracker</title></head>
+<body>
+    <h2>Daily Calorie Tracker</h2>
+    <input type="number" id="calInput" placeholder="Calories per meal">
+    <button id="addBtn">Add Calories</button>
+    <div id="feedbackLabel">Total: 0 | Feedback: Waiting for input...</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+@@code js script.js
+const GOAL = 2000;
+let totalCalories = 0;
+let entryCount = 0;
+
+document.getElementById("addBtn").addEventListener("click", function () {
+    let inputField = document.getElementById("calInput");
+    let mealCal = parseInt(inputField.value);
+    if (isNaN(mealCal) || mealCal <= 0) return;
+
+    totalCalories += mealCal;      // a) running total
+    entryCount++;                  // d) count entries
+
+    let msg = "";                  // c) feedback by range
+    if (totalCalories <= 800) msg = "You're off to a healthy start!";
+    else if (totalCalories <= 1600) msg = "Good progress, keep it balanced!";
+    else if (totalCalories <= 1999) msg = "Almost at your limit!";
+    else msg = "Goal reached! Stay mindful!";
+
+    if (entryCount > 10 && totalCalories < GOAL) {   // e) override
+        msg = "Be cautious of frequent snacking!";
+    }
+
+    document.getElementById("feedbackLabel").innerHTML =
+        `Total Calories: ${totalCalories} / ${GOAL}<br>` +
+        `Entries: ${entryCount}<br>Feedback: ${msg}`;   // b) show total
+    inputField.value = "";
+});
+@@end
+      </div></details>
+      <div class="demo">
+        <div class="demo-title"><span>Live demo</span></div>
+        <div class="demo-row"><label>Calories<input id="cal-in" type="number" value="300"></label><button class="btn primary" id="cal-btn" type="button">Add Calories</button><button class="btn" id="cal-12" type="button">Run sample 3 (12 × 125)</button><button class="btn" id="cal-reset" type="button">Reset</button></div>
+        <div class="out" id="cal-out">Total: 0 | Feedback: Waiting for input...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip php">Q2 · PHP</span><h4>Movie night screens</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>A PHP function takes attendees, seat capacity per screen and ticket price per seat. Find the complete screens needed and the empty seats. Each screen rents for 25,000 BDT; wasted money = <b>ticket price × unused seats</b>.</p></div>
+@@table sample
+Attendees|Capacity|Ticket|Screens|Empty|Wasted
+150|60|500|3|30|15,000
+280|100|400|3|20|8,000
+320|120|350|3|40|14,000
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code html index.html
+<form action="movie.php" method="post">
+    Total Attendees: <input type="number" name="attendees"><br><br>
+    Seat Capacity per Screen: <input type="number" name="seat_capacity"><br><br>
+    Ticket Price per Seat: <input type="number" name="ticket_price"><br><br>
+    <input type="submit" value="Calculate">
+</form>
+@@end
+@@code php movie.php
+<?php
+function calculateScreens($attendees, $seatCapacity, $ticketPrice) {
+    $screens = ceil($attendees / $seatCapacity);
+    $empty   = $screens * $seatCapacity - $attendees;
+    $wasted  = $empty * $ticketPrice;          // the question says so directly
+
+    echo "Total Screens: $screens<br>";
+    echo "Empty Seats: $empty<br>";
+    echo "Wasted Money: " . number_format($wasted) . " BDT<br>";
+    // (rental cost, if you want to show it: $screens * 25000)
+}
+
+calculateScreens((int)$_POST["attendees"], (int)$_POST["seat_capacity"], (int)$_POST["ticket_price"]);
+?>
+@@end
+      </div></details>
+      <div class="demo" data-sim="movie">
+        <div class="demo-title"><span>Simulate the PHP</span></div>
+        <div class="demo-row"><label>Attendees<input id="mv-a" type="number" value="150"></label><label>Capacity<input id="mv-b" type="number" value="60"></label><label>Ticket price<input id="mv-c" type="number" value="500"></label></div>
+        <div class="out php" id="mv-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qblock">
+    <div class="qhead"><span class="chip sql">Q3 · PHP + MySQL</span><h4>Sundarban sales data</h4><span class="chip marks">10</span></div>
+    <div class="qbody">
+      <div class="qtext"><p>Database <code>sundarban</code>, table <code>sales_data</code>. 1) total revenue per category; 2) revenue &lt; 40,000 → category “Low Performing”; 3) revenue &gt; 70,000 → +10%; 4) each product with its category and “Top Seller” if revenue is above <b>its own category’s average</b>, else “Regular Seller”.</p></div>
+@@table given data
+SaleID|ProductName|CategoryID|CategoryName|Quantity|Revenue
+1|Laptop|301|Electronics|5|350000
+2|Mouse|301|Electronics|15|45000
+3|Chair|302|Furniture|8|64000
+4|Desk|302|Furniture|6|72000
+5|Bottle|303|Accessories|20|30000
+6|Pen|303|Accessories|25|20000
+@@end
+      <details class="sol" open><summary>Solution</summary><div class="inner">
+@@code sql queries.txt
+CREATE DATABASE sundarban;
+USE sundarban;
+CREATE TABLE sales_data (
+    SaleID INT PRIMARY KEY,
+    ProductName VARCHAR(100),
+    CategoryID INT,
+    CategoryName VARCHAR(100),
+    Quantity INT,
+    Revenue DECIMAL(12,2)
+);
+INSERT INTO sales_data VALUES
+(1, 'Laptop', 301, 'Electronics', 5, 350000),
+(2, 'Mouse', 301, 'Electronics', 15, 45000),
+(3, 'Chair', 302, 'Furniture', 8, 64000),
+(4, 'Desk', 302, 'Furniture', 6, 72000),
+(5, 'Bottle', 303, 'Accessories', 20, 30000),
+(6, 'Pen', 303, 'Accessories', 25, 20000);
+@@end
+@@code php index.php
+<?php
+$conn = new mysqli("localhost", "root", "", "sundarban");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+echo "<h3>1. Total Revenue per Category</h3>";
+$result = $conn->query("SELECT CategoryName, SUM(Revenue) AS TotalRevenue
+                        FROM sales_data GROUP BY CategoryName");
+while ($row = $result->fetch_assoc()) {
+    echo $row["CategoryName"] . ": " . $row["TotalRevenue"] . " BDT<br>";
+}
+
+echo "<h3>2. Mark Low Performers</h3>";
+$sql = "UPDATE sales_data SET CategoryName = 'Low Performing' WHERE Revenue < 40000";
+if ($conn->query($sql) === TRUE) echo "Updated " . $conn->affected_rows . " products<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>3. 10% Bonus Revenue</h3>";
+$sql = "UPDATE sales_data SET Revenue = Revenue * 1.10 WHERE Revenue > 70000";
+if ($conn->query($sql) === TRUE) echo "Updated " . $conn->affected_rows . " products<br>";
+else echo "Error: " . $conn->error;
+
+echo "<h3>4. Seller Labels</h3>";
+$sql = "SELECT ProductName, CategoryName,
+               CASE
+                   WHEN Revenue > (SELECT AVG(s2.Revenue) FROM sales_data s2
+                                   WHERE s2.CategoryID = s1.CategoryID)
+                   THEN 'Top Seller'
+                   ELSE 'Regular Seller'
+               END AS Label
+        FROM sales_data s1";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    echo $row["ProductName"] . " | " . $row["CategoryName"] . " | " . $row["Label"] . "<br>";
+}
+
+$conn->close();
+?>
+@@end
+      </div></details>
+      <h4>Verified output</h4>
+@@table 1 · revenue per category (before updates)
+CategoryName|TotalRevenue
+Electronics|395000.00
+Furniture|136000.00
+Accessories|50000.00
+@@end
+@@table after parts 2 and 3, with part 4 labels | hl=1,4,5
+ProductName|CategoryName|Revenue|Label
+Laptop|Electronics|*385000.00|Top Seller
+Mouse|Electronics|45000.00|Regular Seller
+Chair|Furniture|64000.00|Regular Seller
+Desk|Furniture|*79200.00|Top Seller
+Bottle|*Low Performing|30000.00|Top Seller
+Pen|*Low Performing|20000.00|Regular Seller
+@@end
+      <div class="note tip"><b class="k">Why compare by CategoryID</b><p>Part 2 renamed Bottle and Pen’s <em>CategoryName</em> to “Low Performing”, but their <em>CategoryID</em> (303) didn’t change. Linking the subquery on <code>CategoryID</code> keeps “its own category” stable. Here, linking on CategoryName gives the same labels, because only Bottle and Pen were renamed and they became their own group.</p></div>
+      <div class="note"><b class="k">Revenue type</b><p>The original solution uses <code>Revenue INT</code>. 350000 × 1.10 = 385000 exactly, so INT works for this data. <code>DECIMAL</code> is safer for any 10% update.</p></div>
+    </div>
+  </div>
+</section>

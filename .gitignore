@@ -1,0 +1,8 @@
+# Course materials stay local (large / instructor-owned)
+*.zip
+*.docx
+*.pdf
+*.mov
+# Artifact-only build output
+prep-site/artifact.html
+__pycache__/

@@ -1,0 +1,367 @@
+<!-- =============================== JS =============================== -->
+<section class="unit" id="js-run" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span> Question 1 · 10 marks</div><h2>How JavaScript runs in a page</h2></div></div>
+  <p>A JS exam answer is always two files: <code>index.html</code> (what the user sees) and <code>script.js</code> (what happens when they click). The HTML has three ingredients: <b>inputs</b> to type into, a <b>button</b> to click, and an empty <b>output box</b> (a <code>div</code> or <code>label</code>) that JS writes into.</p>
+@@code html index.html — the skeleton for every JS question
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My App</title>
+</head>
+<body>
+    <input type="text" id="nameInput" placeholder="Subject">
+    <input type="number" id="numInput" placeholder="Hours">
+    <button id="addBtn">Add</button>
+
+    <div id="output">Waiting for input...</div>
+
+    <!-- Link JS at the very bottom of <body> -->
+    <script src="script.js"></script>
+</body>
+</html>
+@@end
+  <div class="note"><b class="k">Why the script goes last</b><p>The browser reads HTML top to bottom. If <code>&lt;script&gt;</code> were in the <code>&lt;head&gt;</code>, it would run before the button exists, so <code>document.getElementById("addBtn")</code> would return <code>null</code> and you’d get <em>“Cannot read properties of null”</em>.</p></div>
+  <div class="note warn"><b class="k">No &lt;form&gt; tag in the JS question</b><p>A <code>&lt;button&gt;</code> inside a <code>&lt;form&gt;</code> submits the form and reloads the page. Every variable resets to 0, so the running total disappears. Keep inputs and button loose in the <code>&lt;body&gt;</code>.</p></div>
+  <h4>Testing without HTML: the console</h4>
+  <p>The Basic JS lecture practises in the browser console (right-click → Inspect → Console). <code>prompt()</code> reads input and <code>console.log()</code> prints. In the exam you’ll use HTML inputs instead, but <code>console.log()</code> is still your best debugging tool. Print a variable to see what it really holds.</p>
+@@code js console practice
+let userName = prompt("What is your name?");   // always returns a STRING
+console.log("Hello, " + userName);
+
+let age = Number(prompt("Enter your age:"));   // convert to number
+console.log("You will be " + (age + 1) + " next year.");
+@@end
+</section>
+
+<section class="unit" id="js-basics" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>Variables, types and reading input</h2></div></div>
+  <h3>let and const</h3>
+@@code js
+const GOAL = 2000;        // const: never changes (goal, limits, prices)
+let total = 0;            // let: changes over time (totals, counts)
+let isDone = false;       // boolean
+let subject = "Math";     // string
+let subjects = [];        // array (a list)
+@@end
+  <p>Use <code>const</code> for numbers the question fixes (“daily goal of 2000”, “weekly goal of 20 hours”). Use <code>let</code> for anything you add to. Avoid <code>var</code>; it works but has confusing scoping rules.</p>
+
+  <h3>The #1 bug: input is always text</h3>
+  <p><code>.value</code> from an input, and <code>prompt()</code>, always give a <b>string</b>, even for <code>type="number"</code>. With strings, <code>+</code> joins text instead of adding.</p>
+  <div class="demo" id="demo-concat">
+    <div class="demo-title"><span>Try it · string vs number</span></div>
+    <div class="demo-row">
+      <label>Total so far<input id="dc-a" value="10"></label>
+      <label>New entry<input id="dc-b" value="5"></label>
+    </div>
+    <div class="out" id="dc-out"></div>
+  </div>
+@@code js converting
+let raw = document.getElementById("numInput").value;  // "5"  (string)
+
+let a = Number(raw);      // 5     — handles decimals: Number("2.5") = 2.5
+let b = parseInt(raw);    // 5     — whole numbers only: parseInt("2.9") = 2
+let c = parseFloat(raw);  // 5     — decimals: parseFloat("2.5") = 2.5
+
+Number("")      // 0    (empty box becomes 0!)
+Number("abc")   // NaN  (Not a Number)
+parseInt("")    // NaN
+
+if (isNaN(a)) {           // reject bad input
+    return;               // (inside a function: stop here)
+}
+@@end
+  <div class="note tip"><b class="k">Which one to use</b><p>Use <code>Number()</code> when hours or readings can be decimals (study hours, SpO2). Use <code>parseInt()</code> for counts and guesses. Both are accepted in the exam; just don’t forget to convert.</p></div>
+</section>
+
+<section class="unit" id="js-control" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>Operators, if-else and loops</h2></div></div>
+  <h3>Operators</h3>
+  <div class="rt-scroll"><table class="plain"><thead><tr><th>Operator</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+    <tr><td><code>+ - * /</code></td><td>Arithmetic</td><td><code>total / count</code> → average</td></tr>
+    <tr><td><code>%</code></td><td>Remainder</td><td><code>10 % 3</code> is 1; <code>n % 2 === 0</code> means even</td></tr>
+    <tr><td><code>+= ++ --</code></td><td>Update in place</td><td><code>total += hours; count++;</code></td></tr>
+    <tr><td><code>=== !==</code></td><td>Strict equal / not equal (checks type too)</td><td><code>"5" === 5</code> is false</td></tr>
+    <tr><td><code>== !=</code></td><td>Loose equal (converts types)</td><td><code>"5" == 5</code> is true; avoid it</td></tr>
+    <tr><td><code>&lt; &lt;= &gt; &gt;=</code></td><td>Compare</td><td><code>total &gt;= GOAL</code></td></tr>
+    <tr><td><code>&amp;&amp; || !</code></td><td>AND, OR, NOT</td><td><code>count &gt; 7 &amp;&amp; total &lt; 20</code></td></tr>
+  </tbody></table></div>
+
+  <h3>if / else if / else for ranges</h3>
+  <p>Nearly every JS question asks for a feedback message “based on ranges”. Write the chain in order and let each <code>else if</code> assume the earlier checks failed:</p>
+@@code js feedback by range (Spring 2026 Set A)
+let msg = "";
+if (total <= 5) {
+    msg = "Start studying regularly!";
+} else if (total <= 12) {       // we already know total > 5
+    msg = "Good progress!";
+} else if (total <= 19) {
+    msg = "Almost ready!";
+} else {                         // 20 or more
+    msg = "Weekly goal reached!";
+}
+
+// Special rule that OVERRIDES the range message — put it AFTER the chain
+if (sessions > 7 && total < 20) {
+    msg = "Increase your study time!";
+}
+@@end
+  <div class="note tip"><b class="k">Gaps in the ranges</b><p>Questions write ranges like “0–5, 6–12, 13–19”. Hours can be decimals (5.5 falls in no range!). Using <code>&lt;= 5</code>, <code>&lt;= 12</code>, <code>&lt;= 19</code> covers every value with no gaps.</p></div>
+
+  <h3>Loops</h3>
+@@code js
+// for: when you know how many times
+for (let i = 0; i < subjects.length; i++) {
+    console.log(subjects[i]);
+}
+
+// for...of: walk through every item of an array (simplest)
+for (let s of subjects) {
+    console.log(s);
+}
+
+// while: repeat until something changes
+let count = 3;
+while (count > 0) {
+    console.log("Countdown: " + count);
+    count--;
+}
+@@end
+  <p>In the exam you rarely need a loop for the main logic. The <em>button click</em> is the loop: each click runs your function once more. You might loop to build a list for display or to sum an array.</p>
+</section>
+
+<section class="unit" id="js-functions" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>Functions</h2></div></div>
+@@code js three ways to write a function
+// 1. Function declaration
+function average(total, count) {
+    return total / count;
+}
+
+// 2. Anonymous function given to an event listener
+document.getElementById("addBtn").addEventListener("click", function () {
+    // runs on every click
+});
+
+// 3. Arrow function (short form, used with map/filter/reduce)
+const double = n => n * 2;
+const add = (a, b) => a + b;
+@@end
+  <p>Questions often say “Inside a function: …”. Either a named function called by the listener, or the anonymous listener function itself, satisfies that.</p>
+@@code js named function + listener
+function handleClick() {
+    // all the logic
+}
+document.getElementById("addBtn").addEventListener("click", handleClick);  // no () here!
+@@end
+  <div class="note warn"><b class="k">Pass the function, don’t call it</b><p><code>addEventListener("click", handleClick())</code> runs <code>handleClick</code> once immediately and gives the listener its return value (<code>undefined</code>). Write <code>handleClick</code> without parentheses.</p></div>
+
+  <h3>Scope: why counters must be global</h3>
+  <p>A variable declared <b>inside</b> a function is created fresh every time the function runs. To remember something between clicks (attempt count, running total, list of readings), declare it <b>outside</b>, at the top of <code>script.js</code>.</p>
+  <div class="demo">
+    <div class="demo-title"><span>Try it · global vs local counter</span></div>
+    <div class="demo-row"><button class="btn primary" id="sc-btn" type="button">Click me</button></div>
+    <div class="out" id="sc-out">global count = 0 · local count = 0</div>
+    <div class="hint">The local counter is declared inside the click function, so it restarts at 0 and only ever reaches 1.</div>
+  </div>
+@@code js
+let globalCount = 0;                 // lives across clicks
+
+btn.addEventListener("click", function () {
+    let localCount = 0;              // re-created on every click
+    globalCount++;
+    localCount++;
+    // globalCount: 1, 2, 3, 4 ...    localCount: 1, 1, 1, 1 ...
+});
+@@end
+</section>
+
+<section class="unit" id="js-arrays" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>Arrays</h2></div></div>
+  <p>Newer papers ask you to “store each subject name” or “keep track of every reading”. That means an array declared globally and filled with <code>push()</code>.</p>
+@@code js add, remove, read
+let fruits = ["Apple", "Banana"];
+
+fruits.push("Mango");        // add to END        → ["Apple","Banana","Mango"]
+fruits.unshift("Kiwi");      // add to START      → ["Kiwi","Apple","Banana","Mango"]
+fruits.pop();                // remove from END   → ["Kiwi","Apple","Banana"]
+fruits.shift();              // remove from START → ["Apple","Banana"]
+fruits.splice(1, 1, "Orange"); // at index 1, delete 1, insert "Orange" → ["Apple","Orange"]
+
+fruits.length                // 2
+fruits[0]                    // "Apple"  (first)
+fruits[fruits.length - 1]    // "Orange" (last)
+fruits.includes("Apple")     // true
+fruits.indexOf("Orange")     // 1
+fruits.join(", ")            // "Apple, Orange"   ← great for display
+@@end
+
+  <h3>map, filter, reduce</h3>
+  <p>These walk the array for you and return something new without changing the original.</p>
+@@code js
+let nums = [10, 20, 30];
+
+let doubled = nums.map(n => n * 2);               // [20, 40, 60]   transform each
+let big     = nums.filter(n => n > 15);           // [20, 30]       keep the ones that pass
+let sum     = nums.reduce((acc, n) => acc + n, 0);// 60             boil down to one value
+let avg     = sum / nums.length;                  // 20
+
+Math.max(...nums)   // 30   (... spreads the array into separate arguments)
+Math.min(...nums)   // 10
+@@end
+  <p>The callback can also take the <b>index</b> and the whole <b>array</b>, which lets you compare with neighbours (from the Basic JS lecture):</p>
+@@code js hotter than the previous day
+let temps = [20, 22, 21, 25];
+let hotter = temps.filter((t, i, arr) => {
+    if (i === 0) return false;   // first day has no previous
+    return t > arr[i - 1];
+});
+// [22, 25]
+@@end
+  <div class="demo">
+    <div class="demo-title"><span>Try it · array running state</span></div>
+    <div class="demo-row"><label>Reading<input id="ar-in" type="number" value="80"></label><button class="btn primary" id="ar-btn" type="button">push()</button><button class="btn" id="ar-reset" type="button">Reset</button></div>
+    <div class="out" id="ar-out">readings = []</div>
+  </div>
+  <h4>Averaging an array two ways</h4>
+@@code js
+let hr = [80, 78, 130];
+
+// with a loop
+let sum = 0;
+for (let x of hr) sum += x;
+let avg = sum / hr.length;                 // 96
+
+// with reduce
+let avg2 = hr.reduce((a, b) => a + b, 0) / hr.length;   // 96
+@@end
+</section>
+
+<section class="unit" id="js-strings-math" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>Strings, Math and regex</h2></div></div>
+  <h3>Template literals: easiest way to build output</h3>
+@@code js
+let total = 14, avg = 3.5;
+// backticks ` ` + ${ } to drop values in
+let html = `Total: ${total} hours<br>Average: ${avg} hours`;
+
+// same thing with + (works, but easy to miss a space or quote)
+let html2 = "Total: " + total + " hours<br>Average: " + avg + " hours";
+@@end
+  <h3>Useful string tools</h3>
+@@code js
+let pw = "Strong@Pass";
+pw.length              // 11
+pw.toUpperCase()       // "STRONG@PASS"
+pw.includes("@")       // true
+pw.trim()              // removes spaces at both ends
+"English-2".split("-") // ["English", "2"]
+@@end
+  <h3>Regex .test(): does the string contain …?</h3>
+  <p>The password question needs “is there an uppercase letter / number / special character?”. A regex in slashes, then <code>.test(str)</code>, returns <code>true</code> or <code>false</code>:</p>
+@@code js
+/[A-Z]/.test(pw)        // any uppercase letter?
+/[a-z]/.test(pw)        // any lowercase letter?
+/[0-9]/.test(pw)        // any digit?
+/[!@#$%^&*]/.test(pw)   // any of these special characters?
+@@end
+  <h3>Math</h3>
+@@code js
+Math.floor(3.9)   // 3   round DOWN
+Math.ceil(3.1)    // 4   round UP
+Math.round(3.5)   // 4   nearest
+Math.abs(78 - 80) // 2   distance, always positive
+Math.max(4, 9, 2) // 9
+(90.6666).toFixed(2)  // "90.67"  (a string, 2 decimals)
+
+// Random whole number between min and max (both included)
+let secret = Math.floor(Math.random() * (max - min + 1)) + min;
+// 500..5000 → Math.floor(Math.random() * 4501) + 500
+@@end
+  <div class="note"><b class="k">How the random formula works</b><p><code>Math.random()</code> gives 0 ≤ r &lt; 1. Multiply by the number of possible values (<code>max − min + 1</code>), floor it to get 0…(count−1), then shift up by <code>min</code>.</p></div>
+  <div class="note tip"><b class="k">Rounding for display</b><p><code>toFixed(2)</code> always shows 2 decimals (“96.00”). To drop pointless zeros, use <code>Math.round(x * 100) / 100</code>: 96 stays 96, 90.6666 becomes 90.67.</p></div>
+</section>
+
+<section class="unit" id="js-dom" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span></div><h2>The DOM: reading and writing the page</h2></div></div>
+  <p>The DOM is the browser’s live model of your HTML. JS finds elements, reads what the user typed, and writes results back.</p>
+@@code js
+// FIND
+let input = document.getElementById("numInput");      // by id (main way)
+let box   = document.querySelector("#output");         // CSS selector: #id, .class, tag
+let all   = document.querySelectorAll(".item");        // every match (a list)
+
+// READ
+let text = input.value;                // what the user typed (string)
+
+// WRITE
+box.innerText = "Too high!";           // plain text
+box.innerHTML = "Total: 5<br>Avg: 2";  // text + HTML tags like <br>, <b>
+box.style.color = "green";             // change CSS
+
+// CONTROL
+input.value = "";                      // clear the box for the next entry
+input.disabled = true;                 // lock the input (game over)
+input.focus();                         // put the cursor back
+
+// EVENTS
+document.getElementById("addBtn").addEventListener("click", function () {
+    // runs every time the button is clicked
+});
+@@end
+  <div class="vs">
+    <div><h5>innerText</h5><p>Shows exactly the characters you give it. <code>"&lt;br&gt;"</code> appears literally.</p></div>
+    <div><h5>innerHTML</h5><p>Parses tags. Use it when your output has line breaks (<code>&lt;br&gt;</code>) or bold text.</p></div>
+  </div>
+  <h4>onclick in HTML: the other way</h4>
+  <p>You may also see <code>&lt;button onclick="check()"&gt;</code> with <code>function check(){…}</code> in script.js. It works and is acceptable; the lecture prefers <code>addEventListener</code> because it keeps HTML and JS separate.</p>
+</section>
+
+<section class="unit" id="js-pattern" data-topic>
+  <div class="unit-head"><div><div class="eyebrow"><span class="chip js">JS</span> · the template</div><h2>The 4-step exam workflow</h2></div></div>
+  <p>Every JS question since 2024 fits this template. Memorise the shape; only the logic in step 4 changes.</p>
+  <div class="flow">
+    <div class="step"><i>Step 1</i><b>HTML</b><span>inputs with id, button with id, output div, script at bottom</span></div>
+    <div class="step"><i>Step 2</i><b>Globals</b><span>const GOAL; let total = 0, count = 0, list = []</span></div>
+    <div class="step"><i>Step 3</i><b>Listener</b><span>read .value → convert → validate → update globals</span></div>
+    <div class="step"><i>Step 4</i><b>Logic + show</b><span>if-else feedback → innerHTML → clear input</span></div>
+  </div>
+@@code js script.js — fill-in-the-blanks template
+// STEP 2: global state (survives between clicks)
+const GOAL = 2000;
+let total = 0;
+let count = 0;
+let items = [];
+
+// STEP 3: listen for the click
+document.getElementById("addBtn").addEventListener("click", function () {
+    let inputBox = document.getElementById("numInput");
+    let value = Number(inputBox.value);
+    if (isNaN(value) || inputBox.value === "") return;   // ignore bad input
+
+    total += value;          // update state
+    count++;
+    items.push(value);
+
+    // STEP 4: decide the message
+    let msg = "";
+    if (total <= 800) msg = "...";
+    else if (total <= 1600) msg = "...";
+    else msg = "...";
+
+    if (count > 10 && total < GOAL) msg = "...";   // override rule last
+
+    // show it
+    document.getElementById("output").innerHTML =
+        `Total: ${total}<br>Entries: ${count}<br>Feedback: ${msg}`;
+
+    inputBox.value = "";     // clear for next entry
+});
+@@end
+  <div class="note warn"><b class="k">Checklist before you hand in</b><ul>
+    <li>Every id in JS matches the HTML exactly (case-sensitive).</li>
+    <li>Counters and totals are declared outside the function.</li>
+    <li>Input converted with <code>Number()</code> or <code>parseInt()</code>.</li>
+    <li>The “override” rule (too many attempts, etc.) comes after the range chain.</li>
+    <li>Output shows everything the question lists (total, average, list, feedback).</li>
+  </ul></div>
+</section>
